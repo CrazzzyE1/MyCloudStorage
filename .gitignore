@@ -1,0 +1,3 @@
+# Project exclude paths
+/MyClient/target/
+/MyServer/target/
