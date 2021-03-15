@@ -65,7 +65,7 @@
       </ButtonBar>
       <ButtonBar layoutX="14.0" layoutY="628.0" prefHeight="40.0" prefWidth="350.0">
          <buttons>
-            <Button fx:id="dirButton" layoutX="50.0" layoutY="18.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="109.0" text="Create directory" />
+            <Button onAction="#createNewDir" fx:id="dirButton" layoutX="50.0" layoutY="18.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="109.0" text="Create directory" />
             <Button fx:id="sortButton" mnemonicParsing="false" text="Sort" />
             <Button fx:id="removeButton" layoutX="135.0" layoutY="18.0" mnemonicParsing="false" text="Remove" />
          </buttons>

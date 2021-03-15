@@ -8,7 +8,7 @@
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="1024.0" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="clientApp.Controllers.AuthenticationController">
    <children>
-      <Button fx:id="authButton" layoutX="429.0" layoutY="430.0" mnemonicParsing="false" prefHeight="50.0" prefWidth="167.0" text="Log In" textAlignment="CENTER" textFill="#576122" textOverrun="WORD_ELLIPSIS">
+      <Button onAction="#auth" fx:id="authButton" layoutX="429.0" layoutY="430.0" mnemonicParsing="false" prefHeight="50.0" prefWidth="167.0" text="Log In" textAlignment="CENTER" textFill="#576122" textOverrun="WORD_ELLIPSIS">
          <font>
             <Font name="Bernard MT Condensed" size="22.0" />
          </font>
@@ -23,7 +23,7 @@
             <Font name="Bernard MT Condensed" size="23.0" />
          </font>
       </TextField>
-      <Hyperlink fx:id="regLink" layoutX="14.0" layoutY="664.0" text="Registration" textFill="#fc6900" underline="true">
+      <Hyperlink onAction="#registration" fx:id="regLink" layoutX="14.0" layoutY="664.0" text="Registration" textFill="#fc6900" underline="true">
          <font>
             <Font size="22.0" />
          </font>
