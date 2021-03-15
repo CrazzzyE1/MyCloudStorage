@@ -31,7 +31,7 @@
         <menus>
           <Menu mnemonicParsing="false" text="File">
             <items>
-              <MenuItem mnemonicParsing="false" text="Close" />
+              <MenuItem mnemonicParsing="false" onAction="#exit" text="Close" />
             </items>
           </Menu>
           <Menu mnemonicParsing="false" text="Settings">
@@ -54,8 +54,8 @@
         </menus>
       </MenuBar>
       <Separator layoutX="508.0" layoutY="39.0" orientation="VERTICAL" prefHeight="676.0" prefWidth="4.0" />
-      <ListView fx:id="cloudFilesList" layoutX="37.0" layoutY="83.0" prefHeight="504.0" prefWidth="435.0" />
-      <ListView fx:id="pcFilesList" layoutX="552.0" layoutY="83.0" prefHeight="504.0" prefWidth="435.0" />
+      <ListView fx:id="cloudFilesList" layoutX="37.0" layoutY="121.0" onMouseClicked="#selectItem" prefHeight="466.0" prefWidth="435.0" />
+      <ListView fx:id="pcFilesList" layoutX="552.0" layoutY="121.0" prefHeight="466.0" prefWidth="435.0" />
       <ButtonBar layoutX="14.0" layoutY="588.0" prefHeight="40.0" prefWidth="350.0">
         <buttons>
             <Button fx:id="copyButton" layoutX="135.0" layoutY="18.0" mnemonicParsing="false" text="Copy" />
@@ -65,9 +65,9 @@
       </ButtonBar>
       <ButtonBar layoutX="14.0" layoutY="628.0" prefHeight="40.0" prefWidth="350.0">
          <buttons>
-            <Button onAction="#createNewDir" fx:id="dirButton" layoutX="50.0" layoutY="18.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="109.0" text="Create directory" />
-            <Button fx:id="sortButton" mnemonicParsing="false" text="Sort" />
-            <Button fx:id="removeButton" layoutX="135.0" layoutY="18.0" mnemonicParsing="false" text="Remove" />
+            <Button fx:id="dirButton" layoutX="50.0" layoutY="18.0" mnemonicParsing="false" onAction="#mkdir" prefHeight="25.0" prefWidth="109.0" text="Create directory" />
+            <Button fx:id="sortButton" mnemonicParsing="false" onAction="#sortListView" text="Sort" />
+            <Button fx:id="removeButton" layoutX="135.0" layoutY="18.0" mnemonicParsing="false" onAction="#remove" text="Remove" />
          </buttons>
       </ButtonBar>
       <Button fx:id="downloadButton" layoutX="401.0" layoutY="595.0" mnemonicParsing="false" text="Download" />
@@ -79,5 +79,9 @@
             <Cursor fx:constant="WAIT" />
          </cursor>
       </ProgressBar>
+      <TextField fx:id="folderName" layoutX="32.0" layoutY="668.0" prefHeight="25.0" prefWidth="103.0" promptText="Folder name" />
+      <TextField fx:id="addressLine" editable="false" layoutX="37.0" layoutY="90.0" prefHeight="25.0" prefWidth="435.0" />
+      <TextField fx:id="addressPC" layoutX="552.0" layoutY="90.0" prefHeight="25.0" prefWidth="369.0" />
+      <Button onAction="#cdOnPc" fx:id="go" layoutX="933.0" layoutY="90.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="52.0" text="Go" />
    </children>
 </AnchorPane>

@@ -12,6 +12,7 @@ import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import java.io.IOException;
 
+// Контроллер окна Аутентификации
 public class AuthenticationController {
     @FXML
     Button authButton;
@@ -28,16 +29,19 @@ public class AuthenticationController {
         client = Client.getInstance();
     }
 
+    // По кнопке Auth отправляем данные для запроса на сервер
     public void auth() {
+        if(login.getText().trim().isEmpty() || password.getText().trim().isEmpty()) return;
         String msg = "auth ".concat(login.getText()).concat(" ").concat(password.getText());
         client.sendMessage(msg);
         msg = client.readMessage();
-        System.out.println(msg);
+        // Если сервер ответил  Успешно, перходим в Основное окно приложения
         if (msg.equals("authsuccess")) {
             changeWindow("cloud");
         }
     }
 
+    // Смена окна приложения
     public void changeWindow(String fxmlName) {
         try {
             String fxml = "/fxml/" + fxmlName + ".fxml";
@@ -54,6 +58,8 @@ public class AuthenticationController {
         }
 
     }
+
+    // Переход в окно Регистрации
     public void registration() {
         changeWindow("registration");
     }
