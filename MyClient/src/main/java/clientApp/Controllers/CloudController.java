@@ -8,11 +8,16 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 
+import java.awt.*;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.ResourceBundle;
 
 // Основной класс по работе с окном Клиентского приложения
@@ -27,14 +32,14 @@ public class CloudController implements Initializable {
     public CloudController() {
         client = Client.getInstance();
         list = FXCollections.observableArrayList();
-//        pcPath = "C:/Users/litva/IdeaProjects/MyCloudStorage/MyClient/src/main/resources/myDir";
         pcPath = "MyClient/src/main/resources/myDir";
     }
 
     // Создание новой директории
     public void mkdir() {
-        if (!folderName.getText().isEmpty()) {
-            String name = folderName.getText();
+        String name = folderName.getText().trim().replace(" ", "_");
+
+        if (!name.isEmpty()) {
             client.sendMessage("mkdir " + name);
             if (client.readMessage().equals("dirSuccess")) {
                 client.sendMessage("ls");
@@ -69,7 +74,7 @@ public class CloudController implements Initializable {
     public void sortListView(ActionEvent actionEvent) {
         client.sendMessage("ls");
         listFilesOnServer = client.readMessage();
-        updateListViewer(list,listFilesOnServer,cloudFilesList);
+        updateListViewer(list, listFilesOnServer, cloudFilesList);
         cloudFilesList.getItems().stream().sorted();
         ArrayList<String> sb1 = new ArrayList<>();
         ArrayList<String> sb2 = new ArrayList<>();
@@ -98,7 +103,7 @@ public class CloudController implements Initializable {
 
     }
 
-    //Получение списка файлов на ПК пользователя. Пока папка конкретная...
+    //Получение списка файлов на ПК пользователя.
     public String getPcFilesList(String dir) {
         File file = new File(dir);
         File[] files = file.listFiles();
@@ -115,17 +120,51 @@ public class CloudController implements Initializable {
         list.removeAll(list);
         String[] files = listFilesOnServer.trim().split(" ");
         list.addAll("<- Back");
-        list.addAll(files);
+        if(Arrays.asList(files).get(0).isEmpty()){
+            list.addAll("Empty");
+        } else {
+            list.addAll(files);
+        }
         listView.getItems().addAll(list);
         addressLine.setText(getAddressLine());
     }
 
-    //Выбор элемента по двойному клику
+    //Выбор элемента по двойному клику Cloud
     public void selectItem(MouseEvent mouseEvent) {
         if (mouseEvent.getClickCount() == 2 && !cloudFilesList.getSelectionModel().getSelectedItems().isEmpty()) {
             String name = cloudFilesList.getSelectionModel().getSelectedItem();
             cd(name);
         }
+    }
+
+    //Выбор элемента по двойному клику PC
+    public void selectItemPC(MouseEvent mouseEvent) {
+        if (mouseEvent.getClickCount() == 2 && !pcFilesList.getSelectionModel().getSelectedItems().isEmpty() ) {
+            String name = pcFilesList.getSelectionModel().getSelectedItem();
+            if(name.equals("<- Back")){
+                pcPath = getPreviousPath(pcPath);
+            } else if (new File(pcPath + "/" + name).isDirectory()){
+                pcPath = pcPath + "/" + name;
+            }
+            updateListViewer(list,getPcFilesList(pcPath),pcFilesList);
+            File file = new File(pcPath);
+            pcPath = file.getAbsolutePath().replaceAll("\\\\", "/");
+            addressPC.setText(pcPath);
+        }
+    }
+// Получение строки с адресом для Back
+    public String getPreviousPath(String path) {
+
+        int index = -1;
+        for (int i = 0; i < path.length(); i++) {
+            if (path.charAt(i) == '/') {
+                index = i;
+            }
+        }
+        path = path.substring(0, index);
+        System.out.println(path);
+        if (path.equals("C:")) path = "C:/";
+        return path;
     }
 
     //Смена директории
@@ -148,7 +187,48 @@ public class CloudController implements Initializable {
     public void cdOnPc(ActionEvent actionEvent) {
         if (!addressPC.getText().isEmpty())
             pcPath = addressPC.getText();
-        updateListViewer(list, getPcFilesList(pcPath), pcFilesList);
+        if(new File(pcPath).exists()){
+            updateListViewer(list, getPcFilesList(pcPath), pcFilesList);
+        }
+
+    }
+
+    //Копирование файла
+    public void copyFile(ActionEvent actionEvent) {
+        if (!cloudFilesList.getSelectionModel().getSelectedItem().isEmpty()
+                && !cloudFilesList.getSelectionModel().getSelectedItem().equals("<- Back")) {
+            String name = cloudFilesList.getSelectionModel().getSelectedItem();
+            client.sendMessage("copy " + name);
+            client.readMessage();
+        }
+    }
+
+    // Вырезание файла
+    public void cut(ActionEvent actionEvent) {
+        if (!cloudFilesList.getSelectionModel().getSelectedItem().isEmpty()
+                && !cloudFilesList.getSelectionModel().getSelectedItem().equals("<- Back")) {
+            String name = cloudFilesList.getSelectionModel().getSelectedItem();
+            client.sendMessage("cut " + name);
+            client.readMessage();
+        }
+    }
+
+    // Вставка файла
+    public void paste(ActionEvent actionEvent) {
+        client.sendMessage("paste");
+        client.readMessage();
+        client.sendMessage("ls");
+        listFilesOnServer = client.readMessage();
+        updateListViewer(list, listFilesOnServer, cloudFilesList);
+    }
+
+    // For fun
+    public void openWebpage(ActionEvent actionEvent) {
+        try {
+            Desktop.getDesktop().browse(new URL("http://i.mycdn.me/i?r=AzEPZsRbOZEKgBhR0XGMT1RkUQz0tb6GH3YzGNzdL8pyWaaKTM5SRkZCeTgDn6uOyic").toURI());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     // Инит на старте пргораммы
@@ -222,6 +302,7 @@ public class CloudController implements Initializable {
     public void exit(ActionEvent actionEvent) {
         Platform.exit();
     }
+
 
 
 }
