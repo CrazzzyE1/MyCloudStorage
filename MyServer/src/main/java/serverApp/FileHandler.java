@@ -13,6 +13,7 @@ import java.util.ArrayList;
 
 public class FileHandler extends SimpleChannelInboundHandler {
     private String mainPath = "MyServer/src/main/resources/server";
+//    private String mainPath = "C:/";
     private String previousPath = "MyServer/src/main/resources/server";
     private String rootPath = "MyServer/src/main/resources/server";
 
@@ -62,9 +63,11 @@ public class FileHandler extends SimpleChannelInboundHandler {
             ctx.writeAndFlush("regsuccess");
         } else if (command.equals("mkdir")) {
 //Создание директории на сервере в открытой папке
+
             File folder = new File(mainPath + File.separator + strings[1]);
+            System.out.println(folder.getAbsolutePath());
             if (!folder.exists()) {
-                folder.mkdir();
+                System.out.println(folder.mkdir());
                 ctx.writeAndFlush("dirSuccess");
             } else {
                 ctx.writeAndFlush("unSuccess");
