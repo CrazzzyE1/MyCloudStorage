@@ -33,6 +33,7 @@ public class CloudController implements Initializable {
         client = Client.getInstance();
         list = FXCollections.observableArrayList();
         pcPath = "MyClient/src/main/resources/myDir";
+//        pcPath = "C:/";
     }
 
     // Создание новой директории
@@ -105,6 +106,7 @@ public class CloudController implements Initializable {
 
     //Получение списка файлов на ПК пользователя.
     public String getPcFilesList(String dir) {
+        System.out.println(dir);
         File file = new File(dir);
         File[] files = file.listFiles();
         StringBuffer sb = new StringBuffer();
