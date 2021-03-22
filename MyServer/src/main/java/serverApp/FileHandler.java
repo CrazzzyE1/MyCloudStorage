@@ -11,7 +11,7 @@ import java.util.ArrayList;
 
 public class FileHandler extends SimpleChannelInboundHandler {
     private String mainPath = "MyServer/src/main/resources/server";
-//    private String mainPath = "C:/";
+    //    private String mainPath = "C:/";
     private String previousPath = "MyServer/src/main/resources/server";
     private String rootPath = "MyServer/src/main/resources/server";
 
@@ -42,7 +42,7 @@ public class FileHandler extends SimpleChannelInboundHandler {
             File[] files = file.listFiles();
             StringBuffer sb = new StringBuffer();
             for (File f : files) {
-                sb.append(f.getName() + " ");
+                sb.append(f.getName().replace(" ", "??") + " ");
             }
             if (sb.length() < 1) sb.append("Empty");
             ctx.writeAndFlush(sb.toString());
@@ -61,10 +61,9 @@ public class FileHandler extends SimpleChannelInboundHandler {
 //Заглушка Регистрации
             superAuth.add(((String) msg).substring(4));
             ctx.writeAndFlush("regsuccess");
-        } else if (command.equals("mkdir")) {
 //Создание директории на сервере в открытой папке
-
-            File folder = new File(mainPath + File.separator + strings[1]);
+        } else if (command.equals("mkdir")) {
+            File folder = new File(mainPath + File.separator + strings[1].replace("??", " "));
             System.out.println(folder.getAbsolutePath());
             if (!folder.exists()) {
                 System.out.println(folder.mkdir());
@@ -76,7 +75,7 @@ public class FileHandler extends SimpleChannelInboundHandler {
         }
 //Удаление директории или файла на сервере в открытой папке
         else if (command.equals("rm")) {
-            File rm = new File(mainPath + File.separator + strings[1]);
+            File rm = new File(mainPath + File.separator + strings[1].replace("??", " "));
             if (rm.exists()) {
                 rm.delete();
                 ctx.writeAndFlush("rmSuccess");
@@ -86,14 +85,26 @@ public class FileHandler extends SimpleChannelInboundHandler {
         }
 //Смена директории на сервере
         else if (command.equals("cd")) {
+            if (strings[1].contains("::")) {
+                System.out.println("YES");
+                mainPath = strings[1].split("::")[1]
+                        .replace("??", " ")
+                        .replace("\\", "/");
+                System.out.println(mainPath);
+                previousPath = getPreviousPath(mainPath);
+                ctx.writeAndFlush("cdSuccess");
+                return;
+
+            }
             if (strings[1].equals("back")) {
                 mainPath = previousPath;
                 previousPath = getPreviousPath(mainPath);
                 ctx.writeAndFlush("cdSuccess");
             } else {
-                File cd = new File(mainPath + File.separator + strings[1]);
+                System.out.println(strings[1]);
+                File cd = new File(mainPath + File.separator + strings[1].replace("??", " "));
                 if (cd.exists() && cd.isDirectory()) {
-                    mainPath = mainPath + "/" + strings[1];
+                    mainPath = mainPath + "/" + strings[1].replace("??", " ");
                     previousPath = getPreviousPath(mainPath);
                     ctx.writeAndFlush("cdSuccess");
                 } else {
@@ -107,7 +118,7 @@ public class FileHandler extends SimpleChannelInboundHandler {
         }
         //Подготовка к копированию или вызеранию файла (запоминаем адрес файла источника)
         else if (command.equals("copy") || command.equals("cut")) {
-            File copy = new File(mainPath + File.separator + strings[1]);
+            File copy = new File(mainPath + File.separator + strings[1].replace("??", " "));
             if (copy.exists()) {
                 if (command.equals("copy")) {
                     cutOrCopy = true;
@@ -147,28 +158,29 @@ public class FileHandler extends SimpleChannelInboundHandler {
             search = sb.toString().trim();
             sb.setLength(0);
             Files.walkFileTree(Paths.get(rootPath), new SimpleFileVisitor<Path>() {
-                    @Override
-                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs){
-                        if (search.equals(file.getFileName().toString()) || (file.getFileName().toString()).contains(search)) {
-                            sb.append(file.getFileName().toString()
-                                    .replace(" ", ",,") + "::"
-                                    + file.toAbsolutePath().toString()
-                                    .replace(" ", ",,") + ",,");
-                            return FileVisitResult.CONTINUE;
-                        }
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                    if (search.equals(file.getFileName().toString()) || (file.getFileName().toString()).contains(search)) {
+
+                        sb.append(file.getFileName().toString()
+                                .replace(" ", "??") + "::"
+//                                    + file.toAbsolutePath().toString()
+                                + file.getParent().toString()
+                                .replace(" ", "??") + ":: ");
                         return FileVisitResult.CONTINUE;
                     }
-                });
-                search = sb.toString();
-                if(search.isEmpty()) search = "Not Found";
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+            search = sb.toString();
+            if (search.isEmpty()) search = "Not Found";
             ctx.writeAndFlush(search);
-        }
-
-        else {
+        } else {
             System.out.println("Unknown command");
         }
     }
-//Создание строки адреса для шага Back
+
+    //Создание строки адреса для шага Back
     public String getPreviousPath(String path) {
         if (path.equals(rootPath)) return path;
         int index = -1;
