@@ -5,10 +5,8 @@ import io.netty.channel.SimpleChannelInboundHandler;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 
 public class FileHandler extends SimpleChannelInboundHandler {
@@ -19,6 +17,8 @@ public class FileHandler extends SimpleChannelInboundHandler {
 
     private boolean cutOrCopy = false; // TRUE - COPY, FALSE - CUT
     private String nameFile = "";
+    private String search = "";
+    private StringBuilder sb = new StringBuilder();
 
     private String copyOrCutPath = "";
     private ArrayList<String> superAuth = new ArrayList<>();
@@ -29,7 +29,7 @@ public class FileHandler extends SimpleChannelInboundHandler {
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, Object msg) {
+    protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws IOException {
         System.out.println("Message: " + msg);
         String[] strings = ((String) msg)
                 .replace("\r", "")
@@ -137,7 +137,34 @@ public class FileHandler extends SimpleChannelInboundHandler {
             copyOrCutPath = "";
             nameFile = "";
             ctx.writeAndFlush("pasteSuccess");
-        } else {
+        }
+        // Поиск файла
+        else if (command.equals("search")) {
+            sb.setLength(0);
+            for (int i = 1; i < strings.length; i++) {
+                sb.append(strings[i]).append(" ");
+            }
+            search = sb.toString().trim();
+            sb.setLength(0);
+            Files.walkFileTree(Paths.get(rootPath), new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs){
+                        if (search.equals(file.getFileName().toString()) || (file.getFileName().toString()).contains(search)) {
+                            sb.append(file.getFileName().toString()
+                                    .replace(" ", ",,") + "::"
+                                    + file.toAbsolutePath().toString()
+                                    .replace(" ", ",,") + ",,");
+                            return FileVisitResult.CONTINUE;
+                        }
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
+                search = sb.toString();
+                if(search.isEmpty()) search = "Not Found";
+            ctx.writeAndFlush(search);
+        }
+
+        else {
             System.out.println("Unknown command");
         }
     }

@@ -106,12 +106,12 @@ public class CloudController implements Initializable {
 
     //Получение списка файлов на ПК пользователя.
     public String getPcFilesList(String dir) {
-        System.out.println(dir);
         File file = new File(dir);
         File[] files = file.listFiles();
         StringBuffer sb = new StringBuffer();
+        if(files == null) return sb.toString();
         for (File f : files) {
-            sb.append(f.getName()).append(" ");
+            sb.append(f.getName().replace(" ", "??")).append(" ");
         }
         return sb.toString();
     }
@@ -121,6 +121,9 @@ public class CloudController implements Initializable {
         listView.getItems().clear();
         list.removeAll(list);
         String[] files = listFilesOnServer.trim().split(" ");
+        for (int i = 0; i < files.length; i++) {
+            files[i] = files[i].replace("??", " ");
+        }
         list.addAll("<- Back");
         if(Arrays.asList(files).get(0).isEmpty()){
             list.addAll("Empty");
@@ -134,7 +137,9 @@ public class CloudController implements Initializable {
     //Выбор элемента по двойному клику Cloud
     public void selectItem(MouseEvent mouseEvent) {
         if (mouseEvent.getClickCount() == 2 && !cloudFilesList.getSelectionModel().getSelectedItems().isEmpty()) {
-            String name = cloudFilesList.getSelectionModel().getSelectedItem();
+            String name = cloudFilesList.getSelectionModel().getSelectedItem()
+//                    .replace(" ", "??")
+                    ;
             cd(name);
         }
     }
@@ -143,6 +148,7 @@ public class CloudController implements Initializable {
     public void selectItemPC(MouseEvent mouseEvent) {
         if (mouseEvent.getClickCount() == 2 && !pcFilesList.getSelectionModel().getSelectedItems().isEmpty() ) {
             String name = pcFilesList.getSelectionModel().getSelectedItem();
+            System.out.println(name);
             if(name.equals("<- Back")){
                 pcPath = getPreviousPath(pcPath);
             } else if (new File(pcPath + "/" + name).isDirectory()){
@@ -233,7 +239,22 @@ public class CloudController implements Initializable {
         }
     }
 
-    // Инит на старте пргораммы
+    // поиск файлов на сервере
+    public void search(ActionEvent actionEvent) {
+        if(searchLabel.getText().trim().isEmpty()) return;
+        String searchStr = searchLabel.getText().trim();
+        client.sendMessage("search " + searchStr);
+        searchStr = client.readMessage();
+        searchLabel.clear();
+        if(searchStr.equals("Not Found")){
+            searchLabel.setPromptText(searchStr);
+            return;
+        }
+        searchLabel.setPromptText("Search file");
+        updateListViewer(list, searchStr.replace("::" , "-").replace(",,", " "), cloudFilesList);
+    }
+
+    // Инит на старте программы
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         client.sendMessage("ls");
@@ -304,7 +325,6 @@ public class CloudController implements Initializable {
     public void exit(ActionEvent actionEvent) {
         Platform.exit();
     }
-
 
 
 }
