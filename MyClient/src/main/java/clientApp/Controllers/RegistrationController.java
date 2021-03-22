@@ -32,13 +32,26 @@ public class RegistrationController {
     }
 
     public void reg() {
-        String msg = "reg ".concat(login.getText()).concat(" ")
-                .concat(password.getText().concat(" ")
-                        .concat(nickname.getText()));
+        if(login.getText().trim().isEmpty() || password.getText().trim().isEmpty() || nickname.getText().trim().isEmpty()){
+            login.clear();
+            password.clear();
+            nickname.clear();
+            login.setPromptText("Login, password or nickname is Empty");
+            return;
+        }
+        String msg = "reg ".concat(login.getText().trim().replace(" ", "??")).concat(" ")
+                .concat(password.getText().trim().replace(" ", "??").concat(" ")
+                        .concat(nickname.getText().trim().replace(" ", "??")));
         client.sendMessage(msg);
         msg = client.readMessage();
+        System.out.println(msg);
         if (msg.equals("regsuccess")) {
             back();
+        } else {
+            login.clear();
+            password.clear();
+            nickname.clear();
+            login.setPromptText("Login already exists");
         }
     }
 
