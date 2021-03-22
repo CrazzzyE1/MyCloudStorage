@@ -38,7 +38,7 @@ public class CloudController implements Initializable {
 
     // Создание новой директории
     public void mkdir() {
-        String name = folderName.getText().trim().replace(" ", "_");
+        String name = folderName.getText().trim().replace(" ", "??");
 
         if (!name.isEmpty()) {
             client.sendMessage("mkdir " + name);
@@ -61,7 +61,7 @@ public class CloudController implements Initializable {
         if (!cloudFilesList.getSelectionModel().getSelectedItem().isEmpty()
                 && !cloudFilesList.getSelectionModel().getSelectedItem().equals("<- Back")) {
             String name = cloudFilesList.getSelectionModel().getSelectedItem();
-            client.sendMessage("rm " + name);
+            client.sendMessage("rm " + name.replace(" ", "??"));
             if (client.readMessage().equals("rmSuccess")) {
                 client.sendMessage("ls");
                 listFilesOnServer = client.readMessage();
@@ -81,13 +81,16 @@ public class CloudController implements Initializable {
         ArrayList<String> sb2 = new ArrayList<>();
         String tmp;
         ObservableList<String> str = cloudFilesList.getItems();
-        for (String s : str) {
-            if (s.contains(".")) {
-                sb1.add(s);
-            } else if (!s.contains("<- Back")) {
-                sb2.add(s);
+
+        for (int i = 0; i < str.size(); i++) {
+            String tmpstr = str.get(i).replace(" ", "??");
+            if (tmpstr.contains(".")) {
+                sb1.add(tmpstr);
+            } else if (!tmpstr.contains("<-??Back")) {
+                sb2.add(tmpstr);
             }
         }
+
         if (sortFlag) {
             tmp = (sb1.toString() + " " + sb2.toString());
             sortFlag = !sortFlag;
@@ -138,8 +141,9 @@ public class CloudController implements Initializable {
     public void selectItem(MouseEvent mouseEvent) {
         if (mouseEvent.getClickCount() == 2 && !cloudFilesList.getSelectionModel().getSelectedItems().isEmpty()) {
             String name = cloudFilesList.getSelectionModel().getSelectedItem()
-//                    .replace(" ", "??")
+                    .replace(" ", "??")
                     ;
+            System.out.println(name);
             cd(name);
         }
     }
@@ -177,7 +181,7 @@ public class CloudController implements Initializable {
 
     //Смена директории
     public void cd(String dir) {
-        if (dir.equals("<- Back")) dir = "back";
+        if (dir.equals("<-??Back")) dir = "back";
         client.sendMessage("cd " + dir);
         System.out.println(client.readMessage());
         client.sendMessage("ls");
@@ -193,19 +197,21 @@ public class CloudController implements Initializable {
 
     //cd на ПК по папкам
     public void cdOnPc(ActionEvent actionEvent) {
-        if (!addressPC.getText().isEmpty())
+        String tmp = addressPC.getText().trim();
+        if (!addressPC.getText().trim().isEmpty() && new File(tmp).exists() && new File(tmp).listFiles() != null){
             pcPath = addressPC.getText();
-        if(new File(pcPath).exists()){
             updateListViewer(list, getPcFilesList(pcPath), pcFilesList);
+        } else {
+            addressPC.clear();
+            addressPC.setText(pcPath);
         }
-
     }
 
     //Копирование файла
     public void copyFile(ActionEvent actionEvent) {
         if (!cloudFilesList.getSelectionModel().getSelectedItem().isEmpty()
                 && !cloudFilesList.getSelectionModel().getSelectedItem().equals("<- Back")) {
-            String name = cloudFilesList.getSelectionModel().getSelectedItem();
+            String name = cloudFilesList.getSelectionModel().getSelectedItem().replace(" ", "??");
             client.sendMessage("copy " + name);
             client.readMessage();
         }
@@ -215,7 +221,7 @@ public class CloudController implements Initializable {
     public void cut(ActionEvent actionEvent) {
         if (!cloudFilesList.getSelectionModel().getSelectedItem().isEmpty()
                 && !cloudFilesList.getSelectionModel().getSelectedItem().equals("<- Back")) {
-            String name = cloudFilesList.getSelectionModel().getSelectedItem();
+            String name = cloudFilesList.getSelectionModel().getSelectedItem().replace(" ", "??");
             client.sendMessage("cut " + name);
             client.readMessage();
         }
@@ -251,7 +257,7 @@ public class CloudController implements Initializable {
             return;
         }
         searchLabel.setPromptText("Search file");
-        updateListViewer(list, searchStr.replace("::" , "-").replace(",,", " "), cloudFilesList);
+        updateListViewer(list, searchStr, cloudFilesList);
     }
 
     // Инит на старте программы
