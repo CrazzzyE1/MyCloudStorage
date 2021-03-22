@@ -37,7 +37,6 @@ public class RegistrationController {
                         .concat(nickname.getText()));
         client.sendMessage(msg);
         msg = client.readMessage();
-        System.out.println(msg);
         if (msg.equals("regsuccess")) {
             back();
         }

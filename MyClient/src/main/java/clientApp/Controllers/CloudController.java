@@ -102,7 +102,6 @@ public class CloudController implements Initializable {
         tmp = tmp.replace(",", "")
                 .replace("[", "")
                 .replace("]", "");
-        System.out.println(tmp);
         updateListViewer(list, tmp, cloudFilesList);
 
     }
@@ -143,7 +142,6 @@ public class CloudController implements Initializable {
             String name = cloudFilesList.getSelectionModel().getSelectedItem()
                     .replace(" ", "??")
                     ;
-            System.out.println(name);
             cd(name);
         }
     }
@@ -152,7 +150,6 @@ public class CloudController implements Initializable {
     public void selectItemPC(MouseEvent mouseEvent) {
         if (mouseEvent.getClickCount() == 2 && !pcFilesList.getSelectionModel().getSelectedItems().isEmpty() ) {
             String name = pcFilesList.getSelectionModel().getSelectedItem();
-            System.out.println(name);
             if(name.equals("<- Back")){
                 pcPath = getPreviousPath(pcPath);
             } else if (new File(pcPath + "/" + name).isDirectory()){
@@ -174,7 +171,6 @@ public class CloudController implements Initializable {
             }
         }
         path = path.substring(0, index);
-        System.out.println(path);
         if (path.equals("C:")) path = "C:/";
         return path;
     }
@@ -183,7 +179,7 @@ public class CloudController implements Initializable {
     public void cd(String dir) {
         if (dir.equals("<-??Back")) dir = "back";
         client.sendMessage("cd " + dir);
-        System.out.println(client.readMessage());
+        client.readMessage();
         client.sendMessage("ls");
         listFilesOnServer = client.readMessage();
         updateListViewer(list, listFilesOnServer, cloudFilesList);

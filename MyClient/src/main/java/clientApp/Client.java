@@ -60,7 +60,6 @@ public class Client implements Closeable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println(msg);
         return msg;
     }
 

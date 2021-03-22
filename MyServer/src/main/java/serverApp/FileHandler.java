@@ -11,7 +11,6 @@ import java.util.ArrayList;
 
 public class FileHandler extends SimpleChannelInboundHandler {
     private String mainPath = "MyServer/src/main/resources/server";
-    //    private String mainPath = "C:/";
     private String previousPath = "MyServer/src/main/resources/server";
     private String rootPath = "MyServer/src/main/resources/server";
 
@@ -30,7 +29,6 @@ public class FileHandler extends SimpleChannelInboundHandler {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws IOException {
-        System.out.println("Message: " + msg);
         String[] strings = ((String) msg)
                 .replace("\r", "")
                 .replace("\n", "")
@@ -64,9 +62,8 @@ public class FileHandler extends SimpleChannelInboundHandler {
 //Создание директории на сервере в открытой папке
         } else if (command.equals("mkdir")) {
             File folder = new File(mainPath + File.separator + strings[1].replace("??", " "));
-            System.out.println(folder.getAbsolutePath());
             if (!folder.exists()) {
-                System.out.println(folder.mkdir());
+                folder.mkdir();
                 ctx.writeAndFlush("dirSuccess");
             } else {
                 ctx.writeAndFlush("unSuccess");
@@ -86,7 +83,6 @@ public class FileHandler extends SimpleChannelInboundHandler {
 //Смена директории на сервере
         else if (command.equals("cd")) {
             if (strings[1].contains("::")) {
-                System.out.println("YES");
                 mainPath = strings[1].split("::")[1]
                         .replace("??", " ")
                         .replace("\\", "/");
@@ -101,7 +97,6 @@ public class FileHandler extends SimpleChannelInboundHandler {
                 previousPath = getPreviousPath(mainPath);
                 ctx.writeAndFlush("cdSuccess");
             } else {
-                System.out.println(strings[1]);
                 File cd = new File(mainPath + File.separator + strings[1].replace("??", " "));
                 if (cd.exists() && cd.isDirectory()) {
                     mainPath = mainPath + "/" + strings[1].replace("??", " ");
@@ -190,7 +185,6 @@ public class FileHandler extends SimpleChannelInboundHandler {
             }
         }
         path = path.substring(0, index);
-        System.out.println(path);
         return path;
     }
 
