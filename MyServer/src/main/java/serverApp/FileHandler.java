@@ -10,6 +10,8 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 
 public class FileHandler extends SimpleChannelInboundHandler {
+
+    private DbController dbController;
     private String mainPath = "MyServer/src/main/resources/server";
     private String previousPath = "MyServer/src/main/resources/server";
     private String rootPath = "MyServer/src/main/resources/server";
@@ -22,13 +24,22 @@ public class FileHandler extends SimpleChannelInboundHandler {
     private String copyOrCutPath = "";
     private ArrayList<String> superAuth = new ArrayList<>();
 
+    public FileHandler(DbController dbController) {
+        this.dbController = dbController;
+        System.out.println("Constructor");
+    }
+
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+    public void channelActive(ChannelHandlerContext ctx){
         System.out.println("Client connected: " + ctx.channel().remoteAddress());
+        System.out.println("id " + ctx.channel().id());
+        System.out.println("localAddress " + ctx.channel().localAddress().toString());
+
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws IOException {
+        System.out.println(msg);
         String[] strings = ((String) msg)
                 .replace("\r", "")
                 .replace("\n", "")
@@ -47,18 +58,27 @@ public class FileHandler extends SimpleChannelInboundHandler {
 
         } else if (command.equals("auth")) {
 //Заглушка авторизации
-            for (int i = 0; i < superAuth.size(); i++) {
-                if (superAuth.get(i).contains(((String) msg).substring(5))) {
-                    ctx.writeAndFlush("authsuccess");
-                    return;
-                }
+            String login = strings[1].trim().replace("??", " ");
+            String password = strings[2].trim().replace("??", " ");
+            if(dbController.auth(login, password)) {
+                ctx.writeAndFlush("authsuccess");
+            } else {
+                ctx.writeAndFlush("autherror");
             }
-            ctx.writeAndFlush("authError");
 
         } else if (command.equals("reg")) {
 //Заглушка Регистрации
-            superAuth.add(((String) msg).substring(4));
-            ctx.writeAndFlush("regsuccess");
+            String login = strings[1].replace("??", " ");
+            String password = strings[2].replace("??", " ");
+            String nick = strings[3].replace("??", " ");
+            boolean reg = dbController.reg(login, password, nick);
+            System.out.println(reg);
+            if(reg){
+                ctx.writeAndFlush("regsuccess");
+            } else {
+                ctx.writeAndFlush("regerror");
+            }
+
 //Создание директории на сервере в открытой папке
         } else if (command.equals("mkdir")) {
             File folder = new File(mainPath + File.separator + strings[1].replace("??", " "));

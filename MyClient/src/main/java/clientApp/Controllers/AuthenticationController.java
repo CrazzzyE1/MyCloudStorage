@@ -31,13 +31,23 @@ public class AuthenticationController {
 
     // По кнопке Auth отправляем данные для запроса на сервер
     public void auth() {
-        if(login.getText().trim().isEmpty() || password.getText().trim().isEmpty()) return;
-        String msg = "auth ".concat(login.getText()).concat(" ").concat(password.getText());
+        if(login.getText().trim().isEmpty() || password.getText().trim().isEmpty()) {
+            login.clear();
+            password.clear();
+            login.setPromptText("Login or Password is Empty");
+            return;
+        }
+        String msg = "auth ".concat(login.getText().trim().replace(" ", "??"))
+                .concat(" ").concat(password.getText().trim().replace(" ", "??"));
         client.sendMessage(msg);
         msg = client.readMessage();
         // Если сервер ответил  Успешно, перходим в Основное окно приложения
         if (msg.equals("authsuccess")) {
             changeWindow("cloud");
+        } else {
+            login.clear();
+            password.clear();
+            login.setPromptText("Wrong Login or Password");
         }
     }
 
