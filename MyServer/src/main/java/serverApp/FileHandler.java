@@ -7,30 +7,26 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
 
 public class FileHandler extends SimpleChannelInboundHandler {
 
     private DbController dbController;
-    private String mainPath = "MyServer/MyCloud";
-    private String previousPath = mainPath;
-    private String rootPath = mainPath;
+    private String mainPath;
+    private String previousPath;
+    private String rootPath;
 
     private boolean cutOrCopy = false; // TRUE - COPY, FALSE - CUT
+    private String copyOrCutPath = "";
+
     private String nameFile = "";
     private String search = "";
     private StringBuilder sb = new StringBuilder();
 
-    private String copyOrCutPath = "";
-    private ArrayList<String> superAuth = new ArrayList<>();
-
-    public FileHandler(DbController dbController) {
+    public FileHandler(DbController dbController, String mainPath) {
         this.dbController = dbController;
-        System.out.println("Constructor");
-        File folder = new File(mainPath);
-        if (!folder.exists()) {
-            folder.mkdir();
-        }
+        this.mainPath = mainPath;
+        this.previousPath = mainPath;
+        this.rootPath = mainPath;
     }
 
     @Override
@@ -43,7 +39,7 @@ public class FileHandler extends SimpleChannelInboundHandler {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws IOException {
-        System.out.println(msg);
+
         String[] strings = ((String) msg)
                 .replace("\r", "")
                 .replace("\n", "")
@@ -59,13 +55,12 @@ public class FileHandler extends SimpleChannelInboundHandler {
             }
             if (sb.length() < 1) sb.append("Empty");
             ctx.writeAndFlush(sb.toString());
-
-        } else if (command.equals("auth")) {
 //Авторизации
+        } else if (command.equals("auth")) {
             String login = strings[1].trim().replace("??", " ");
             String password = strings[2].trim().replace("??", " ");
             if (dbController.auth(login, password)) {
-                File folder = new File("MyServer/MyCloud/" + login);
+                File folder = new File("MyCloud/" + login);
                 if (!folder.exists()) {
                     folder.mkdir();
                 }
@@ -76,16 +71,15 @@ public class FileHandler extends SimpleChannelInboundHandler {
             } else {
                 ctx.writeAndFlush("autherror");
             }
-
-        } else if (command.equals("reg")) {
 //Регистрация
+        } else if (command.equals("reg")) {
             String login = strings[1].replace("??", " ");
             String password = strings[2].replace("??", " ");
             String nick = strings[3].replace("??", " ");
             boolean reg = dbController.reg(login, password, nick);
             System.out.println(reg);
             if (reg) {
-                File folder = new File("MyServer/MyCloud/" + login);
+                File folder = new File("MyCloud/" + login);
                 if (!folder.exists()) {
                     folder.mkdir();
                 }
@@ -93,9 +87,9 @@ public class FileHandler extends SimpleChannelInboundHandler {
             } else {
                 ctx.writeAndFlush("regerror");
             }
-
+        }
 //Создание директории на сервере в открытой папке
-        } else if (command.equals("mkdir")) {
+         else if (command.equals("mkdir")) {
             File folder = new File(mainPath + File.separator + strings[1].replace("??", " "));
             if (!folder.exists()) {
                 folder.mkdir();
@@ -142,19 +136,15 @@ public class FileHandler extends SimpleChannelInboundHandler {
                 }
             }
         }
-        //Отправка адреса клиенту
+//Отправка адреса клиенту
         else if (command.equals("getAddress")) {
             ctx.writeAndFlush(mainPath);
         }
-        //Подготовка к копированию или вызеранию файла (запоминаем адрес файла источника)
+//Подготовка к копированию или вызеранию файла (запоминаем адрес файла источника)
         else if (command.equals("copy") || command.equals("cut")) {
             File copy = new File(mainPath + File.separator + strings[1].replace("??", " "));
             if (copy.exists()) {
-                if (command.equals("copy")) {
-                    cutOrCopy = true;
-                } else {
-                    cutOrCopy = false;
-                }
+                cutOrCopy = command.equals("copy");
                 nameFile = copy.getName();
                 copyOrCutPath = copy.getPath();
                 ctx.writeAndFlush("rmSuccess");
@@ -162,7 +152,7 @@ public class FileHandler extends SimpleChannelInboundHandler {
                 ctx.writeAndFlush("unSuccess");
             }
         }
-        // Вставка файла
+// Вставка файла
         else if (command.equals("paste")) {
 
             if (!copyOrCutPath.isEmpty()) {
@@ -179,7 +169,7 @@ public class FileHandler extends SimpleChannelInboundHandler {
             nameFile = "";
             ctx.writeAndFlush("pasteSuccess");
         }
-        // Поиск файла
+// Поиск файла
         else if (command.equals("search")) {
             sb.setLength(0);
             for (int i = 1; i < strings.length; i++) {
@@ -194,7 +184,6 @@ public class FileHandler extends SimpleChannelInboundHandler {
 
                         sb.append(file.getFileName().toString()
                                 .replace(" ", "??") + "::"
-//                                    + file.toAbsolutePath().toString()
                                 + file.getParent().toString()
                                 .replace(" ", "??") + ":: ");
                         return FileVisitResult.CONTINUE;
@@ -210,7 +199,7 @@ public class FileHandler extends SimpleChannelInboundHandler {
         }
     }
 
-    //Создание строки адреса для шага Back
+//Создание строки адреса для шага Back
     public String getPreviousPath(String path) {
         if (path.equals(rootPath)) return path;
         int index = -1;
@@ -224,7 +213,7 @@ public class FileHandler extends SimpleChannelInboundHandler {
     }
 
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+    public void channelInactive(ChannelHandlerContext ctx){
         System.out.println("Client disconnected: " + ctx.channel().remoteAddress());
     }
 }

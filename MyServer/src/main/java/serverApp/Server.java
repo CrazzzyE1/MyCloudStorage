@@ -10,15 +10,28 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 
+import java.io.File;
+
 public class Server {
+
+    //Server settings
+    private final int SERVER_PORT = 1234;
+    private final String mainPath = "MyCloud";
+
+    //Database settings
     private final String DB_HOST = "localhost";
     private final int DB_PORT = 3306;
-    private final int SERVER_PORT = 1234;
+    private final static String user = "root";
+    private final static String password = "Viking07";
+
     private final DbController dbController;
+
+
     public Server() {
-        dbController = new DbController(DB_HOST, DB_PORT);
+        dbController = new DbController(DB_HOST, DB_PORT, user, password);
+        File folder = new File(mainPath);
+        if (!folder.exists()) folder.mkdir();
     }
-    // ldsf
 
     public void run(){
         EventLoopGroup auth = new NioEventLoopGroup(1);
@@ -33,7 +46,7 @@ public class Server {
                             ch.pipeline().addLast(
                                     new StringDecoder(),
                                     new StringEncoder(),
-                                    new FileHandler(dbController)
+                                    new FileHandler(dbController, mainPath)
                             );
                         }
                     });
