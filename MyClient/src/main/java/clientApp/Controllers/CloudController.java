@@ -138,7 +138,7 @@ public class CloudController implements Initializable {
 
     //Выбор элемента по двойному клику Cloud
     public void selectItem(MouseEvent mouseEvent) {
-        if (mouseEvent.getClickCount() == 2 && !cloudFilesList.getSelectionModel().getSelectedItems().isEmpty()) {
+        if (mouseEvent.getClickCount() >= 2 && !cloudFilesList.getSelectionModel().getSelectedItems().isEmpty()) {
             String name = cloudFilesList.getSelectionModel().getSelectedItem()
                     .replace(" ", "??")
                     ;
@@ -148,7 +148,7 @@ public class CloudController implements Initializable {
 
     //Выбор элемента по двойному клику PC
     public void selectItemPC(MouseEvent mouseEvent) {
-        if (mouseEvent.getClickCount() == 2 && !pcFilesList.getSelectionModel().getSelectedItems().isEmpty() ) {
+        if (mouseEvent.getClickCount() >= 2 && !pcFilesList.getSelectionModel().getSelectedItems().isEmpty() ) {
             String name = pcFilesList.getSelectionModel().getSelectedItem();
             if(name.equals("<- Back")){
                 pcPath = getPreviousPath(pcPath);
