@@ -4,20 +4,19 @@ import java.sql.*;
 
 public class DbController {
 
-    private static final String url = "jdbc:mysql://localhost:3306/clouddb";
-    private static final String user = "root";
-    private static final String password = "Viking07";
-    private static Connection connection;
-    private static Statement statement;
-    private static ResultSet resultSet;
-    private String host;
-    private int port;
-
+    //    private final String url = "jdbc:mysql://localhost:3306/clouddb";
+    private final String url;
+    private final String user;
+    private final String password;
+//    private Connection connection;
+    private Statement statement;
+    private ResultSet resultSet;
     private String sql = "";
 
-    public DbController(String host, int port) {
-        this.host = host;
-        this.port = port;
+    public DbController(String host, int port, String user, String password) {
+        this.user = user;
+        this.password = password;
+        this.url = "jdbc:mysql://" + host + ":" + port + "/clouddb";
     }
 
     public boolean auth(String login, String password) {
@@ -25,8 +24,7 @@ public class DbController {
                 "WHERE login='" + login + "' AND password='" + password + "';";
         ResultSet rs = sendQuery(sql);
         try {
-            if (rs.next()) return true;
-            return false;
+            return rs.next();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -45,8 +43,7 @@ public class DbController {
                 "WHERE login='" + login + "';";
         ResultSet rs = sendQuery(sql);
         try {
-            if (rs.next()) return true;
-            return false;
+            return rs.next();
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -80,12 +77,10 @@ public class DbController {
     private void openConnection() {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            connection = DriverManager.getConnection(url, user, password);
+            Connection connection = DriverManager.getConnection(url, user, password);
             statement = connection.createStatement();
-        } catch (SQLException throwables) {
+        } catch (SQLException | ClassNotFoundException throwables) {
             throwables.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
         }
     }
 }

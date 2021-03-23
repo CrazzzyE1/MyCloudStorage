@@ -32,8 +32,7 @@ public class CloudController implements Initializable {
     public CloudController() {
         client = Client.getInstance();
         list = FXCollections.observableArrayList();
-        pcPath = "MyClient/src/main/resources/myDir";
-//        pcPath = "C:/";
+        pcPath = new File("MyClient").getAbsolutePath().replace("\\","/");
     }
 
     // Создание новой директории
@@ -195,7 +194,9 @@ public class CloudController implements Initializable {
     public void cdOnPc(ActionEvent actionEvent) {
         String tmp = addressPC.getText().trim();
         if (!addressPC.getText().trim().isEmpty() && new File(tmp).exists() && new File(tmp).listFiles() != null){
-            pcPath = addressPC.getText();
+            pcPath = addressPC.getText().trim();
+            if(pcPath.equals("C") || pcPath.equals("C:")) pcPath = "C:/";
+            addressPC.setText(pcPath);
             updateListViewer(list, getPcFilesList(pcPath), pcFilesList);
         } else {
             addressPC.clear();
