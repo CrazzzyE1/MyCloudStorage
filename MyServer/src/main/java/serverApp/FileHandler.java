@@ -12,9 +12,9 @@ import java.util.ArrayList;
 public class FileHandler extends SimpleChannelInboundHandler {
 
     private DbController dbController;
-    private String mainPath = "MyServer/src/main/resources/server";
-    private String previousPath = "MyServer/src/main/resources/server";
-    private String rootPath = "MyServer/src/main/resources/server";
+    private String mainPath = "MyServer/MyCloud";
+    private String previousPath = mainPath;
+    private String rootPath = mainPath;
 
     private boolean cutOrCopy = false; // TRUE - COPY, FALSE - CUT
     private String nameFile = "";
@@ -27,10 +27,14 @@ public class FileHandler extends SimpleChannelInboundHandler {
     public FileHandler(DbController dbController) {
         this.dbController = dbController;
         System.out.println("Constructor");
+        File folder = new File(mainPath);
+        if (!folder.exists()) {
+            folder.mkdir();
+        }
     }
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx){
+    public void channelActive(ChannelHandlerContext ctx) {
         System.out.println("Client connected: " + ctx.channel().remoteAddress());
         System.out.println("id " + ctx.channel().id());
         System.out.println("localAddress " + ctx.channel().localAddress().toString());
@@ -45,7 +49,7 @@ public class FileHandler extends SimpleChannelInboundHandler {
                 .replace("\n", "")
                 .trim().split(" ");
         String command = strings[0];
-// Получение списка файлов и отправка клиенту
+//Получение списка файлов и отправка клиенту
         if (command.equals("ls")) {
             File file = new File(mainPath);
             File[] files = file.listFiles();
@@ -57,23 +61,34 @@ public class FileHandler extends SimpleChannelInboundHandler {
             ctx.writeAndFlush(sb.toString());
 
         } else if (command.equals("auth")) {
-//Заглушка авторизации
+//Авторизации
             String login = strings[1].trim().replace("??", " ");
             String password = strings[2].trim().replace("??", " ");
-            if(dbController.auth(login, password)) {
+            if (dbController.auth(login, password)) {
+                File folder = new File("MyServer/MyCloud/" + login);
+                if (!folder.exists()) {
+                    folder.mkdir();
+                }
+                mainPath = mainPath.concat("/").concat(login);
+                rootPath = mainPath;
+                previousPath = mainPath;
                 ctx.writeAndFlush("authsuccess");
             } else {
                 ctx.writeAndFlush("autherror");
             }
 
         } else if (command.equals("reg")) {
-//Заглушка Регистрации
+//Регистрация
             String login = strings[1].replace("??", " ");
             String password = strings[2].replace("??", " ");
             String nick = strings[3].replace("??", " ");
             boolean reg = dbController.reg(login, password, nick);
             System.out.println(reg);
-            if(reg){
+            if (reg) {
+                File folder = new File("MyServer/MyCloud/" + login);
+                if (!folder.exists()) {
+                    folder.mkdir();
+                }
                 ctx.writeAndFlush("regsuccess");
             } else {
                 ctx.writeAndFlush("regerror");
