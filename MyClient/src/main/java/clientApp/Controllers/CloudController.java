@@ -8,8 +8,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.scene.control.Button;
-import javafx.scene.control.MenuBar;
 import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 
@@ -32,7 +30,7 @@ public class CloudController implements Initializable {
     public CloudController() {
         client = Client.getInstance();
         list = FXCollections.observableArrayList();
-        pcPath = new File("MyClient").getAbsolutePath().replace("\\","/");
+        pcPath = new File("MyClient").getAbsolutePath().replace("\\", "/");
     }
 
     // Создание новой директории
@@ -52,7 +50,6 @@ public class CloudController implements Initializable {
             folderName.setPromptText("Enter new name");
             folderName.setStyle("-fx-border-color: red;");
         }
-
     }
 
     //Удаление папки или файла на сервере
@@ -67,7 +64,6 @@ public class CloudController implements Initializable {
                 updateListViewer(list, listFilesOnServer, cloudFilesList);
             }
         }
-
     }
 
     //Сортировка списка файлов в списке файлов сервера (ListView). Криво выглядит, но работает. К ней вернусь еще.
@@ -75,7 +71,6 @@ public class CloudController implements Initializable {
         client.sendMessage("ls");
         listFilesOnServer = client.readMessage();
         updateListViewer(list, listFilesOnServer, cloudFilesList);
-        cloudFilesList.getItems().stream().sorted();
         ArrayList<String> sb1 = new ArrayList<>();
         ArrayList<String> sb2 = new ArrayList<>();
         String tmp;
@@ -92,12 +87,11 @@ public class CloudController implements Initializable {
 
         if (sortFlag) {
             tmp = (sb1.toString() + " " + sb2.toString());
-            sortFlag = !sortFlag;
         } else {
             tmp = (sb2.toString() + " " + sb1.toString());
-            sortFlag = !sortFlag;
-
         }
+        sortFlag = !sortFlag;
+
         tmp = tmp.replace(",", "")
                 .replace("[", "")
                 .replace("]", "");
@@ -109,8 +103,8 @@ public class CloudController implements Initializable {
     public String getPcFilesList(String dir) {
         File file = new File(dir);
         File[] files = file.listFiles();
-        StringBuffer sb = new StringBuffer();
-        if(files == null) return sb.toString();
+        StringBuilder sb = new StringBuilder();
+        if (files == null) return sb.toString();
         for (File f : files) {
             sb.append(f.getName().replace(" ", "??")).append(" ");
         }
@@ -118,7 +112,7 @@ public class CloudController implements Initializable {
     }
 
     // Обновление списка файлов сервера в пользовательском приложении.
-    public void updateListViewer(ObservableList list, String listFilesOnServer, ListView listView) {
+    public void updateListViewer(ObservableList<String> list, String listFilesOnServer, ListView<String> listView) {
         listView.getItems().clear();
         list.removeAll(list);
         String[] files = listFilesOnServer.trim().split(" ");
@@ -126,7 +120,7 @@ public class CloudController implements Initializable {
             files[i] = files[i].replace("??", " ");
         }
         list.addAll("<- Back");
-        if(Arrays.asList(files).get(0).isEmpty()){
+        if (Arrays.asList(files).get(0).isEmpty()) {
             list.addAll("Empty");
         } else {
             list.addAll(files);
@@ -139,28 +133,28 @@ public class CloudController implements Initializable {
     public void selectItem(MouseEvent mouseEvent) {
         if (mouseEvent.getClickCount() >= 2 && !cloudFilesList.getSelectionModel().getSelectedItems().isEmpty()) {
             String name = cloudFilesList.getSelectionModel().getSelectedItem()
-                    .replace(" ", "??")
-                    ;
+                    .replace(" ", "??");
             cd(name);
         }
     }
 
     //Выбор элемента по двойному клику PC
     public void selectItemPC(MouseEvent mouseEvent) {
-        if (mouseEvent.getClickCount() >= 2 && !pcFilesList.getSelectionModel().getSelectedItems().isEmpty() ) {
+        if (mouseEvent.getClickCount() >= 2 && !pcFilesList.getSelectionModel().getSelectedItems().isEmpty()) {
             String name = pcFilesList.getSelectionModel().getSelectedItem();
-            if(name.equals("<- Back")){
+            if (name.equals("<- Back")) {
                 pcPath = getPreviousPath(pcPath);
-            } else if (new File(pcPath + "/" + name).isDirectory()){
+            } else if (new File(pcPath + "/" + name).isDirectory()) {
                 pcPath = pcPath + "/" + name;
             }
-            updateListViewer(list,getPcFilesList(pcPath),pcFilesList);
+            updateListViewer(list, getPcFilesList(pcPath), pcFilesList);
             File file = new File(pcPath);
             pcPath = file.getAbsolutePath().replaceAll("\\\\", "/");
             addressPC.setText(pcPath);
         }
     }
-// Получение строки с адресом для Back
+
+    // Получение строки с адресом для Back
     public String getPreviousPath(String path) {
 
         int index = -1;
@@ -193,9 +187,9 @@ public class CloudController implements Initializable {
     //cd на ПК по папкам
     public void cdOnPc(ActionEvent actionEvent) {
         String tmp = addressPC.getText().trim();
-        if (!addressPC.getText().trim().isEmpty() && new File(tmp).exists() && new File(tmp).listFiles() != null){
+        if (!addressPC.getText().trim().isEmpty() && new File(tmp).exists() && new File(tmp).listFiles() != null) {
             pcPath = addressPC.getText().trim();
-            if(pcPath.equals("C") || pcPath.equals("C:")) pcPath = "C:/";
+            if (pcPath.equals("C") || pcPath.equals("C:")) pcPath = "C:/";
             addressPC.setText(pcPath);
             updateListViewer(list, getPcFilesList(pcPath), pcFilesList);
         } else {
@@ -244,17 +238,21 @@ public class CloudController implements Initializable {
 
     // поиск файлов на сервере
     public void search(ActionEvent actionEvent) {
-        if(searchLabel.getText().trim().isEmpty()) return;
+        if (searchLabel.getText().trim().isEmpty()) return;
         String searchStr = searchLabel.getText().trim();
         client.sendMessage("search " + searchStr);
         searchStr = client.readMessage();
         searchLabel.clear();
-        if(searchStr.equals("Not Found")){
+        if (searchStr.equals("Not Found")) {
             searchLabel.setPromptText(searchStr);
             return;
         }
         searchLabel.setPromptText("Search file");
         updateListViewer(list, searchStr, cloudFilesList);
+    }
+
+    public void exit(ActionEvent actionEvent) {
+        Platform.exit();
     }
 
     // Инит на старте программы
@@ -268,19 +266,10 @@ public class CloudController implements Initializable {
     }
 
     @FXML
-    private Button go;
-
-    @FXML
     TextField addressPC;
 
     @FXML
     private TextField folderName;
-
-    @FXML
-    private Button searchButton;
-
-    @FXML
-    private MenuBar menuBar;
 
     @FXML
     private ListView<String> cloudFilesList;
@@ -289,45 +278,9 @@ public class CloudController implements Initializable {
     private ListView<String> pcFilesList;
 
     @FXML
-    private Button copyButton;
-
-    @FXML
-    private Button cutButton;
-
-    @FXML
-    private Button pasteButton;
-
-    @FXML
-    private Button dirButton;
-
-    @FXML
-    private Button sortButton;
-
-    @FXML
-    private Button removeButton;
-
-    @FXML
-    private Button downloadButton;
-
-    @FXML
-    private Button uploadButton;
-
-    @FXML
     private TextField searchLabel;
 
     @FXML
-    private TextField freeSpace;
-
-    @FXML
-    private ProgressBar progressBar;
-
-    @FXML
     private TextField addressLine;
-
-
-    public void exit(ActionEvent actionEvent) {
-        Platform.exit();
-    }
-
 
 }

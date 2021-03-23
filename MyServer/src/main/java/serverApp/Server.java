@@ -9,6 +9,8 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
+import serverApp.Controllers.ClientHandler;
+import serverApp.Controllers.DbController;
 
 import java.io.File;
 
@@ -46,7 +48,7 @@ public class Server {
                             ch.pipeline().addLast(
                                     new StringDecoder(),
                                     new StringEncoder(),
-                                    new FileHandler(dbController, mainPath)
+                                    new ClientHandler(dbController, mainPath)
                             );
                         }
                     });
