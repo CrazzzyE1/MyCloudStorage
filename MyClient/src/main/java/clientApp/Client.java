@@ -7,13 +7,8 @@ import java.io.IOException;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
-
-// Класс, отвечающий за подключение клиента к серверу. Держит стримы. Отправляет и читает поток.
 public class Client implements Closeable {
 
-    // Singleton - на вебинаре я слышал на этот счет!
-    // Но пока не придумал, как
-    // лучше перекидывать Сокет и стримы между всеми окнами приложения.
     private static Client instance;
 
     private Socket socket;

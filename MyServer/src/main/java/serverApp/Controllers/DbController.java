@@ -1,4 +1,4 @@
-package serverApp;
+package serverApp.Controllers;
 
 import java.sql.*;
 
