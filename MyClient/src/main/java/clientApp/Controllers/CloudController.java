@@ -25,16 +25,20 @@ public class CloudController implements Initializable {
     private String listFilesOnServer;
     private String pcPath;
     private boolean sortFlag = true;
+    private long sizeOfFile = 0;
 
 
     public CloudController() {
         client = Client.getInstance();
         list = FXCollections.observableArrayList();
         pcPath = new File("MyClient").getAbsolutePath().replace("\\", "/");
+        File folder = new File(pcPath);
+        if (!folder.exists()) folder.mkdir();
     }
 
     // Создание новой директории
     public void mkdir() {
+
         String name = folderName.getText().trim().replace(" ", "??");
 
         if (!name.isEmpty()) {
@@ -215,6 +219,37 @@ public class CloudController implements Initializable {
             String name = cloudFilesList.getSelectionModel().getSelectedItem().replace(" ", "??");
             client.sendMessage("cut " + name);
             client.readMessage();
+        }
+    }
+
+    public void download(ActionEvent actionEvent) {
+
+        if (!cloudFilesList.getSelectionModel().getSelectedItem().isEmpty()
+                && !cloudFilesList.getSelectionModel().getSelectedItem().equals("<- Back")) {
+            String name = cloudFilesList.getSelectionModel().getSelectedItem().replace(" ", "??");
+            client.sendMessage("download " + name);
+            String msg = client.readMessage();
+            if(msg.split(" ")[0].equals("downloadSuccess")){
+                sizeOfFile = Long.parseLong(msg.split(" ")[1]);
+                client.sendMessage("waiting");
+                client.getFile(pcPath, cloudFilesList.getSelectionModel().getSelectedItem(), sizeOfFile);
+            }
+        }
+    }
+
+    public void upload(ActionEvent actionEvent) {
+        if (!pcFilesList.getSelectionModel().getSelectedItem().isEmpty()
+                && !pcFilesList.getSelectionModel().getSelectedItem().equals("<- Back")) {
+            String name = pcFilesList.getSelectionModel().getSelectedItem().replace(" ", "??");
+            client.sendMessage("upload " + name);
+            String msg = client.readMessage();
+            if(msg.split(" ")[0].equals("uploadSuccess")){
+                File upload = new File(pcPath + "/" + name);
+                System.out.println("File name: " + name);
+                System.out.println("Upload File size: " + upload.length());
+                client.sendMessage("waitingUpload " + upload.length());
+                client.sendFile(pcPath, name);
+            }
         }
     }
 

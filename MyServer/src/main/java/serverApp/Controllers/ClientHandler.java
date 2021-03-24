@@ -1,11 +1,23 @@
 package serverApp.Controllers;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+
 
 public class ClientHandler extends SimpleChannelInboundHandler {
 
     private final CommandController commandController;
+    private boolean downloadFlag = false;
+    private boolean uploadFlag = false;
+    private long uploadFileSize = 0L;
+    private long count = 0L;
 
     public ClientHandler(DbController dbController, String mainPath) {
         commandController = new CommandController(dbController, mainPath);
@@ -14,57 +26,119 @@ public class ClientHandler extends SimpleChannelInboundHandler {
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         System.out.println("Client connected: " + ctx.channel().remoteAddress());
-        System.out.println("id " + ctx.channel().id());
-        System.out.println("localAddress " + ctx.channel().localAddress().toString());
-
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, Object msg){
+    protected void channelRead0(ChannelHandlerContext ctx, Object msg2){
+        System.out.println("_________________________________________");
 
-        String[] strings = ((String) msg)
-                .replace("\r", "")
-                .replace("\n", "")
-                .trim().split(" ");
-        String command = strings[0];
+            ByteBuf buffer = ((ByteBuf) msg2).copy();
+        if(!uploadFlag) {
+            StringBuilder sbbb = new StringBuilder();
+            for (int i = 0; i < buffer.capacity(); i++) {
+                byte b = buffer.getByte(i);
+                sbbb.append((char) b);
+            }
 
-        switch (command) {
-            case ("ls"):
-                ctx.writeAndFlush(commandController.ls());
-                break;
-            case ("auth"):
-                ctx.writeAndFlush(commandController.auth(strings));
-                break;
-            case ("reg"):
-                ctx.writeAndFlush(commandController.reg(strings));
-                break;
-            case ("mkdir"):
-                ctx.writeAndFlush(commandController.mkdir(strings));
-                break;
-            case ("rm"):
-                ctx.writeAndFlush(commandController.rm(strings));
-                break;
-            case ("cd"):
-                ctx.writeAndFlush(commandController.cd(strings));
-                break;
-            case ("getAddress"):
-                ctx.writeAndFlush(commandController.getAddress());
-                break;
-            case ("copy"):
-            case ("cut"):
-                ctx.writeAndFlush(commandController.copyOrCut(strings));
-                break;
-            case ("paste"):
-                ctx.writeAndFlush(commandController.paste());
-                break;
-            case ("search"):
-                ctx.writeAndFlush(commandController.search(strings));
-                break;
-            default:
-                System.out.println("Unknown command");
-                break;
+            String msg = sbbb.toString();
+            String[] strings = msg
+                    .replace("\r", "")
+                    .replace("\n", "")
+                    .trim().split(" ");
+            String command = strings[0];
+            System.out.println(command);
+
+            switch (command) {
+                case ("ls"):
+                    msg = commandController.ls();
+                    break;
+                case ("auth"):
+                    msg = commandController.auth(strings);
+                    break;
+                case ("reg"):
+                    msg = commandController.reg(strings);
+                    break;
+                case ("mkdir"):
+                    msg = commandController.mkdir(strings);
+                    break;
+                case ("rm"):
+                    msg = commandController.rm(strings);
+                    break;
+                case ("cd"):
+                    msg = commandController.cd(strings);
+                    break;
+                case ("getAddress"):
+                    msg = commandController.getAddress();
+                    break;
+                case ("copy"):
+                case ("cut"):
+                    msg = commandController.copyOrCut(strings);
+                    break;
+                case ("paste"):
+                    msg = commandController.paste();
+                    break;
+                case ("search"):
+                    msg = commandController.search(strings);
+                    break;
+                case ("download"):
+                    msg = commandController.download(strings);
+                    break;
+                case ("waiting"):
+                    downloadFlag = true;
+                    System.out.println("In W");
+                    break;
+                case ("waitingUpload"):
+                    uploadFlag = true;
+                    System.out.println("UploadSize: " + strings[1]);
+                    uploadFileSize = Long.parseLong(strings[1]);
+//                    System.out.println("In Upload size: " + strings[1]);
+                    return;
+                case ("upload"):
+                    msg = commandController.upload(strings);
+                    break;
+                default:
+                    System.out.println("Unknown command");
+                    break;
+            }
+
+            if (downloadFlag) {
+                System.out.println("In Flag");
+                byte[] bytes = commandController.getBytes();
+                System.out.println("Size of bytes: " + bytes.length);
+                buffer = Unpooled.copiedBuffer(bytes);
+                downloadFlag = false;
+                ctx.writeAndFlush(buffer);
+                buffer.clear();
+                return;
+            }
+
+
+            msg2 = Unpooled.copiedBuffer(msg.getBytes(StandardCharsets.UTF_8));
+//        Unpooled.copiedBuffer(byte[])
+//        Unpooled.wrappedBuffer(ByteBuffer)
+//        Unpooled.wrappedBuffer(byte[])
+            System.out.println("in sending");
+            ctx.writeAndFlush(msg2);
         }
 
+        if (uploadFlag) {
+            System.out.println("In Upload flag");
+            System.out.println(buffer.capacity());
+            byte[] bytes = new byte[buffer.capacity()];
+            for (int i = 0; i < bytes.length; i++) {
+                bytes[i] = buffer.getByte(i);
+            }
+            count += buffer.capacity();
+            commandController.uploadFile(bytes);
+            System.out.println("count: " + count + " uploadSize " + uploadFileSize);
+            if(uploadFileSize != count) return;
+            uploadFlag = false;
+            uploadFileSize = 0L;
+            count = 0L;
+            buffer.clear();
+            return;
+        }
+        buffer.clear();
     }
 
     @Override

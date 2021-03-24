@@ -46,8 +46,8 @@ public class Server {
                         @Override
                         public void initChannel(SocketChannel ch){
                             ch.pipeline().addLast(
-                                    new StringDecoder(),
-                                    new StringEncoder(),
+//                                    new StringDecoder(),
+//                                    new StringEncoder(),
                                     new ClientHandler(dbController, mainPath)
                             );
                         }
