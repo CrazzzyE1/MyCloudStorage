@@ -14,6 +14,8 @@ public class CommandController {
     private boolean cutOrCopy = false; // TRUE - COPY, FALSE - CUT
     private String copyOrCutPath = "";
 
+    File download;
+    File upload;
     private String nameFile = "";
     private String search = "";
     private StringBuilder sb = new StringBuilder();
@@ -188,5 +190,51 @@ public class CommandController {
         search = sb.toString();
         if (search.isEmpty()) search = "Not Found";
         return search;
+    }
+
+    public String download(String[] strings) {
+        download = new File(mainPath + File.separator + strings[1].replace("??", " "));
+        if (download.exists() && !download.isDirectory()) {
+            return "downloadSuccess " + download.length();
+        } else {
+            return "unSuccess";
+        }
+    }
+
+    public String upload(String[] strings) {
+        upload = new File(mainPath + File.separator + strings[1].replace("??", " "));
+        if(upload.exists()) {
+            nameFile = "copy_".concat(strings[1]);
+        } else {
+            nameFile = strings[1];
+        }
+        return "uploadSuccess";
+    }
+
+    public byte[] getBytes(){
+        byte[] bytes = new byte[512];
+        try {
+            bytes = Files.readAllBytes(download.toPath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return bytes;
+    }
+
+
+    public void uploadFile(byte[] bytes) {
+        nameFile = nameFile.replace("??", " ");
+        if (!Files.exists(Paths.get(mainPath + "/" + nameFile))) {
+            try {
+                Files.createFile(Paths.get(mainPath + "/" + nameFile));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        try {
+            Files.write(Paths.get(mainPath + "/" + nameFile), bytes, StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

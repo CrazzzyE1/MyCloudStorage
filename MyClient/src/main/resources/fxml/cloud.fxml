@@ -70,8 +70,8 @@
             <Button fx:id="removeButton" layoutX="135.0" layoutY="18.0" mnemonicParsing="false" onAction="#remove" text="Remove" />
          </buttons>
       </ButtonBar>
-      <Button fx:id="downloadButton" layoutX="401.0" layoutY="595.0" mnemonicParsing="false" text="Download" />
-      <Button fx:id="uploadButton" layoutX="552.0" layoutY="595.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="75.0" text="Upload" />
+      <Button onAction="#download" fx:id="downloadButton" layoutX="401.0" layoutY="595.0" mnemonicParsing="false" text="Download" />
+      <Button onAction="#upload" fx:id="uploadButton" layoutX="552.0" layoutY="595.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="75.0" text="Upload" />
       <TextField fx:id="searchLabel" layoutX="189.0" layoutY="53.0" prefHeight="25.0" prefWidth="233.0" promptText="Search file" />
       <TextField fx:id="freeSpace" editable="false" focusTraversable="false" layoutX="318.0" layoutY="685.0" prefHeight="25.0" prefWidth="154.0" promptText=" Free Space 5 Gb / 15 Gb" text=" Free Space 5 Gb / 15 Gb" />
       <ProgressBar fx:id="progressBar" focusTraversable="false" layoutX="833.0" layoutY="685.0" prefHeight="25.0" prefWidth="154.0" progress="0.45">
