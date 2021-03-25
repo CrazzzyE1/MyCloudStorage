@@ -6,10 +6,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-
 
 public class ClientHandler extends SimpleChannelInboundHandler {
 
@@ -32,15 +28,19 @@ public class ClientHandler extends SimpleChannelInboundHandler {
     protected void channelRead0(ChannelHandlerContext ctx, Object msg2){
         System.out.println("_________________________________________");
 
-            ByteBuf buffer = ((ByteBuf) msg2).copy();
+        ByteBuf buffer = ((ByteBuf) msg2).copy();
         if(!uploadFlag) {
-            StringBuilder sbbb = new StringBuilder();
+//            StringBuilder sbbb = new StringBuilder();
+            byte [] bytestmp = new byte[buffer.capacity()];
             for (int i = 0; i < buffer.capacity(); i++) {
-                byte b = buffer.getByte(i);
-                sbbb.append((char) b);
+//                byte b = buffer.getByte(i);
+//                sbbb.append((char) b);
+//                sbbb.append(b);
+                bytestmp[i] = buffer.getByte(i);
             }
 
-            String msg = sbbb.toString();
+//            String msg = sbbb.toString();
+            String msg = new String(bytestmp, 0, bytestmp.length, StandardCharsets.UTF_8);
             String[] strings = msg
                     .replace("\r", "")
                     .replace("\n", "")

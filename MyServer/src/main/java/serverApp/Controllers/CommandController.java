@@ -195,7 +195,6 @@ public class CommandController {
     public String download(String[] strings) {
         download = new File(mainPath + File.separator + strings[1].replace("??", " "));
         if (download.exists() && !download.isDirectory()) {
-//            System.out.println("Size of file: " + download.length());
             return "downloadSuccess " + download.length();
         } else {
             return "unSuccess";

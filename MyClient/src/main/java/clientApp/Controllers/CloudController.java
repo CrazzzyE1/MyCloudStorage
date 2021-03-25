@@ -58,6 +58,7 @@ public class CloudController implements Initializable {
 
     //Удаление папки или файла на сервере
     public void remove(ActionEvent actionEvent) {
+        try{
         if (!cloudFilesList.getSelectionModel().getSelectedItem().isEmpty()
                 && !cloudFilesList.getSelectionModel().getSelectedItem().equals("<- Back")) {
             String name = cloudFilesList.getSelectionModel().getSelectedItem();
@@ -67,7 +68,9 @@ public class CloudController implements Initializable {
                 listFilesOnServer = client.readMessage();
                 updateListViewer(list, listFilesOnServer, cloudFilesList);
             }
-        }
+        } } catch (RuntimeException ex) {
+        System.out.println("Try again");
+    }
     }
 
     //Сортировка списка файлов в списке файлов сервера (ListView). Криво выглядит, но работает. К ней вернусь еще.
@@ -204,26 +207,32 @@ public class CloudController implements Initializable {
 
     //Копирование файла
     public void copyFile(ActionEvent actionEvent) {
+        try{
         if (!cloudFilesList.getSelectionModel().getSelectedItem().isEmpty()
                 && !cloudFilesList.getSelectionModel().getSelectedItem().equals("<- Back")) {
             String name = cloudFilesList.getSelectionModel().getSelectedItem().replace(" ", "??");
             client.sendMessage("copy " + name);
             client.readMessage();
-        }
+        } } catch (RuntimeException ex) {
+        System.out.println("Try again");
+    }
     }
 
     // Вырезание файла
     public void cut(ActionEvent actionEvent) {
+        try {
         if (!cloudFilesList.getSelectionModel().getSelectedItem().isEmpty()
                 && !cloudFilesList.getSelectionModel().getSelectedItem().equals("<- Back")) {
             String name = cloudFilesList.getSelectionModel().getSelectedItem().replace(" ", "??");
             client.sendMessage("cut " + name);
             client.readMessage();
-        }
+        } } catch (RuntimeException ex) {
+        System.out.println("Try again");
+    }
     }
 
     public void download(ActionEvent actionEvent) {
-
+        try{
         if (!cloudFilesList.getSelectionModel().getSelectedItem().isEmpty()
                 && !cloudFilesList.getSelectionModel().getSelectedItem().equals("<- Back")) {
             String name = cloudFilesList.getSelectionModel().getSelectedItem().replace(" ", "??");
@@ -234,22 +243,30 @@ public class CloudController implements Initializable {
                 client.sendMessage("waiting");
                 client.getFile(pcPath, cloudFilesList.getSelectionModel().getSelectedItem(), sizeOfFile);
             }
+        }} catch (RuntimeException ex) {
+            System.out.println("Try again");
         }
     }
 
     public void upload(ActionEvent actionEvent) {
-        if (!pcFilesList.getSelectionModel().getSelectedItem().isEmpty()
-                && !pcFilesList.getSelectionModel().getSelectedItem().equals("<- Back")) {
-            String name = pcFilesList.getSelectionModel().getSelectedItem().replace(" ", "??");
-            client.sendMessage("upload " + name);
-            String msg = client.readMessage();
-            if(msg.split(" ")[0].equals("uploadSuccess")){
-                File upload = new File(pcPath + "/" + name);
-                System.out.println("File name: " + name);
-                System.out.println("Upload File size: " + upload.length());
-                client.sendMessage("waitingUpload " + upload.length());
-                client.sendFile(pcPath, name);
+        try {
+            if (!pcFilesList.getSelectionModel().getSelectedItem().isEmpty()
+                    && !pcFilesList.getSelectionModel().getSelectedItem().equals("<- Back")
+                    && !pcFilesList.getSelectionModel().getSelectedItem().equals("Empty")) {
+                String name = pcFilesList.getSelectionModel().getSelectedItem().replace(" ", "??");
+                File upload = new File(pcPath + "/" + name.replace("??", " "));
+                if (upload.isDirectory() || upload.length() < 1) return;
+                client.sendMessage("upload " + name);
+                String msg = client.readMessage();
+                if (msg.split(" ")[0].equals("uploadSuccess")) {
+                    System.out.println("File name: " + name);
+                    System.out.println("Upload File size: " + upload.length());
+                    client.sendMessage("waitingUpload " + upload.length());
+                    client.sendFile(pcPath, name);
+                }
             }
+        } catch (RuntimeException ex) {
+            System.out.println("Try again");
         }
     }
 
