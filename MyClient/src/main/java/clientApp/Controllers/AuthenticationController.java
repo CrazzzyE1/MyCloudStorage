@@ -10,6 +10,7 @@ import javafx.scene.control.Hyperlink;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
+
 import java.io.IOException;
 
 // Контроллер окна Аутентификации
@@ -31,7 +32,7 @@ public class AuthenticationController {
 
     // По кнопке Auth отправляем данные для запроса на сервер
     public void auth() {
-        if(login.getText().trim().isEmpty() || password.getText().trim().isEmpty()) {
+        if (login.getText().trim().isEmpty() || password.getText().trim().isEmpty()) {
             login.clear();
             password.clear();
             login.setPromptText("Login or Password is Empty");
@@ -47,6 +48,8 @@ public class AuthenticationController {
         client.setSpace(Integer.parseInt(space));
 
         if (msg.split(" ")[0].equals("authsuccess")) {
+            client.setLogin(login.getText().trim());
+            System.out.println("Login: " + client.getLogin());
             changeWindow("cloud");
         } else {
             login.clear();

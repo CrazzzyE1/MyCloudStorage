@@ -60,7 +60,8 @@ public class CloudController implements Initializable {
     public void remove(ActionEvent actionEvent) {
         try {
             if (!cloudFilesList.getSelectionModel().getSelectedItem().isEmpty()
-                    && !cloudFilesList.getSelectionModel().getSelectedItem().equals("<- Back")) {
+                    && !cloudFilesList.getSelectionModel().getSelectedItem().equals("<- Back")
+                    && !cloudFilesList.getSelectionModel().getSelectedItem().equals("!Recycle_Bin")) {
                 String name = cloudFilesList.getSelectionModel().getSelectedItem();
                 client.sendMessage("rm " + name.replace(" ", "??"));
                 if (client.readMessage().equals("rmSuccess")) {
@@ -210,6 +211,7 @@ public class CloudController implements Initializable {
 
     //Копирование файла
     public void copyFile(ActionEvent actionEvent) {
+        if(client.getFreeSpace() < 0) return;
         try {
             if (!cloudFilesList.getSelectionModel().getSelectedItem().isEmpty()
                     && !cloudFilesList.getSelectionModel().getSelectedItem().equals("<- Back")) {
@@ -259,6 +261,7 @@ public class CloudController implements Initializable {
     }
 
     public void upload(ActionEvent actionEvent) throws RuntimeException {
+        if(client.getFreeSpace() < 0) return;
         try {
             if (!pcFilesList.getSelectionModel().getSelectedItem().isEmpty()
                     && !pcFilesList.getSelectionModel().getSelectedItem().equals("<- Back")
@@ -331,7 +334,8 @@ public class CloudController implements Initializable {
     public void checkFreeSpace(Integer space) {
         System.out.println("Check space");
         client.sendMessage("checkSpace");
-        double size = Long.parseLong(client.readMessage());
+        double size = Double.parseDouble(client.readMessage());
+        client.setFreeSpace((int) size);
         String tmp = "";
         if (size > 1023) {
             size = size / 1024;
@@ -357,6 +361,25 @@ public class CloudController implements Initializable {
         tmp = tmp.concat(" / ").concat(space.toString()).concat(" GiB");
         System.out.println(tmp);
         freeSpace.setText(tmp);
+    }
+
+    public void recycleClean(ActionEvent actionEvent) {
+        client.sendMessage("recycleClean");
+        client.readMessage();
+        client.sendMessage("ls");
+        listFilesOnServer = client.readMessage();
+        updateListViewer(list, listFilesOnServer, cloudFilesList);
+        checkFreeSpace(client.getSpace());
+    }
+
+
+    public void restore(ActionEvent actionEvent) {
+        client.sendMessage("restore");
+        client.readMessage();
+        client.sendMessage("ls");
+        listFilesOnServer = client.readMessage();
+        updateListViewer(list, listFilesOnServer, cloudFilesList);
+        checkFreeSpace(client.getSpace());
     }
 
     // Инит на старте программы

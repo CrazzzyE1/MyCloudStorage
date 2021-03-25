@@ -100,6 +100,13 @@ public class ClientHandler extends SimpleChannelInboundHandler {
                 case ("checkSpace"):
                     msg = commandController.checkSpace();
                     break;
+                case ("recycleClean"):
+                    msg = commandController.recycleClean();
+                    break;
+
+                case ("restore"):
+                    msg = commandController.restore();
+                    break;
                 default:
                     System.out.println("Unknown command");
                     break;
