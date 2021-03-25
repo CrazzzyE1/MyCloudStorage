@@ -15,6 +15,8 @@ public class Client implements Closeable {
     private DataOutputStream os;
     private byte[] buffer;
     private final int PORT = 1234;
+    private Integer space;
+    private Integer DEFAULT_SPACE = 15;
 
 
 
@@ -27,6 +29,7 @@ public class Client implements Closeable {
 
     private Client() {
         try {
+            this.space = DEFAULT_SPACE;
             this.socket = new Socket("localhost", PORT);
             this.is = new DataInputStream(socket.getInputStream());
             this.os = new DataOutputStream(socket.getOutputStream());
@@ -34,6 +37,14 @@ public class Client implements Closeable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public Integer getSpace() {
+        return space;
+    }
+
+    public void setSpace(Integer space) {
+        this.space = space;
     }
 
     // Отправка сообщений

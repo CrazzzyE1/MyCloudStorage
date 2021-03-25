@@ -33,8 +33,8 @@ public class DbController {
 
     public boolean reg(String login, String password, String nick) {
         if (checkLogin(login)) return false;
-        sql = "INSERT INTO clouddb.users (login, password, nickname, folderpath) " +
-                "VALUES ('" + login + "', " + "'" + password + "', " + "'" + nick + "', " + "'" + login + "');";
+        sql = "INSERT INTO clouddb.users (login, password, nickname, folderpath, space) " +
+                "VALUES ('" + login + "', " + "'" + password + "', " + "'" + nick + "', " + "'" + login + "', '15');";
         return sendExecute(sql);
     }
 
@@ -54,7 +54,6 @@ public class DbController {
         openConnection();
         try {
             resultSet = statement.executeQuery(sql);
-
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -73,6 +72,20 @@ public class DbController {
         return flag;
     }
 
+    public int getSpace(String login) {
+        sql = "SELECT space FROM clouddb.users " +
+                "WHERE login='" + login + "';";
+        ResultSet rs = sendQuery(sql);
+        int space = 0;
+            try {
+                if (rs.next())
+                space = rs.getInt ("space");
+            } catch (SQLException throwables) {
+                throwables.printStackTrace();
+            }
+    return space;
+    }
+
 
     private void openConnection() {
         try {
@@ -83,4 +96,5 @@ public class DbController {
             throwables.printStackTrace();
         }
     }
+
 }

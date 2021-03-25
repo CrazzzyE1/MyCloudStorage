@@ -58,19 +58,21 @@ public class CloudController implements Initializable {
 
     //Удаление папки или файла на сервере
     public void remove(ActionEvent actionEvent) {
-        try{
-        if (!cloudFilesList.getSelectionModel().getSelectedItem().isEmpty()
-                && !cloudFilesList.getSelectionModel().getSelectedItem().equals("<- Back")) {
-            String name = cloudFilesList.getSelectionModel().getSelectedItem();
-            client.sendMessage("rm " + name.replace(" ", "??"));
-            if (client.readMessage().equals("rmSuccess")) {
-                client.sendMessage("ls");
-                listFilesOnServer = client.readMessage();
-                updateListViewer(list, listFilesOnServer, cloudFilesList);
+        try {
+            if (!cloudFilesList.getSelectionModel().getSelectedItem().isEmpty()
+                    && !cloudFilesList.getSelectionModel().getSelectedItem().equals("<- Back")) {
+                String name = cloudFilesList.getSelectionModel().getSelectedItem();
+                client.sendMessage("rm " + name.replace(" ", "??"));
+                if (client.readMessage().equals("rmSuccess")) {
+                    client.sendMessage("ls");
+                    listFilesOnServer = client.readMessage();
+                    updateListViewer(list, listFilesOnServer, cloudFilesList);
+                }
             }
-        } } catch (RuntimeException ex) {
-        System.out.println("Try again");
-    }
+        } catch (RuntimeException ex) {
+            System.out.println("Try again");
+        }
+        checkFreeSpace(client.getSpace());
     }
 
     //Сортировка списка файлов в списке файлов сервера (ListView). Криво выглядит, но работает. К ней вернусь еще.
@@ -170,6 +172,7 @@ public class CloudController implements Initializable {
                 index = i;
             }
         }
+        if(index == -1) return path;
         path = path.substring(0, index);
         if (path.equals("C:")) path = "C:/";
         return path;
@@ -207,48 +210,55 @@ public class CloudController implements Initializable {
 
     //Копирование файла
     public void copyFile(ActionEvent actionEvent) {
-        try{
-        if (!cloudFilesList.getSelectionModel().getSelectedItem().isEmpty()
-                && !cloudFilesList.getSelectionModel().getSelectedItem().equals("<- Back")) {
-            String name = cloudFilesList.getSelectionModel().getSelectedItem().replace(" ", "??");
-            client.sendMessage("copy " + name);
-            client.readMessage();
-        } } catch (RuntimeException ex) {
-        System.out.println("Try again");
-    }
+        try {
+            if (!cloudFilesList.getSelectionModel().getSelectedItem().isEmpty()
+                    && !cloudFilesList.getSelectionModel().getSelectedItem().equals("<- Back")) {
+                String name = cloudFilesList.getSelectionModel().getSelectedItem().replace(" ", "??");
+                client.sendMessage("copy " + name);
+                client.readMessage();
+            }
+        } catch (RuntimeException ex) {
+            System.out.println("Try again");
+        }
     }
 
     // Вырезание файла
     public void cut(ActionEvent actionEvent) {
         try {
-        if (!cloudFilesList.getSelectionModel().getSelectedItem().isEmpty()
-                && !cloudFilesList.getSelectionModel().getSelectedItem().equals("<- Back")) {
-            String name = cloudFilesList.getSelectionModel().getSelectedItem().replace(" ", "??");
-            client.sendMessage("cut " + name);
-            client.readMessage();
-        } } catch (RuntimeException ex) {
-        System.out.println("Try again");
-    }
-    }
-
-    public void download(ActionEvent actionEvent) {
-        try{
-        if (!cloudFilesList.getSelectionModel().getSelectedItem().isEmpty()
-                && !cloudFilesList.getSelectionModel().getSelectedItem().equals("<- Back")) {
-            String name = cloudFilesList.getSelectionModel().getSelectedItem().replace(" ", "??");
-            client.sendMessage("download " + name);
-            String msg = client.readMessage();
-            if(msg.split(" ")[0].equals("downloadSuccess")){
-                sizeOfFile = Long.parseLong(msg.split(" ")[1]);
-                client.sendMessage("waiting");
-                client.getFile(pcPath, cloudFilesList.getSelectionModel().getSelectedItem(), sizeOfFile);
+            if (!cloudFilesList.getSelectionModel().getSelectedItem().isEmpty()
+                    && !cloudFilesList.getSelectionModel().getSelectedItem().equals("<- Back")) {
+                String name = cloudFilesList.getSelectionModel().getSelectedItem().replace(" ", "??");
+                client.sendMessage("cut " + name);
+                client.readMessage();
             }
-        }} catch (RuntimeException ex) {
+        } catch (RuntimeException ex) {
             System.out.println("Try again");
         }
     }
 
-    public void upload(ActionEvent actionEvent) {
+    public void download(ActionEvent actionEvent) {
+        try {
+            if (!cloudFilesList.getSelectionModel().getSelectedItem().isEmpty()
+                    && !cloudFilesList.getSelectionModel().getSelectedItem().equals("<- Back")) {
+                String name = cloudFilesList.getSelectionModel().getSelectedItem().replace(" ", "??");
+                client.sendMessage("download " + name);
+                String msg = client.readMessage();
+                if (msg.split(" ")[0].equals("downloadSuccess")) {
+                    sizeOfFile = Long.parseLong(msg.split(" ")[1]);
+                    client.sendMessage("waiting");
+                    client.getFile(pcPath, cloudFilesList.getSelectionModel().getSelectedItem(), sizeOfFile);
+                }
+                //обновить листы
+                updateListViewer(list, getPcFilesList(pcPath), pcFilesList);
+
+
+            }
+        } catch (RuntimeException ex) {
+            System.out.println("Try again");
+        }
+    }
+
+    public void upload(ActionEvent actionEvent) throws RuntimeException {
         try {
             if (!pcFilesList.getSelectionModel().getSelectedItem().isEmpty()
                     && !pcFilesList.getSelectionModel().getSelectedItem().equals("<- Back")
@@ -263,11 +273,20 @@ public class CloudController implements Initializable {
                     System.out.println("Upload File size: " + upload.length());
                     client.sendMessage("waitingUpload " + upload.length());
                     client.sendFile(pcPath, name);
+                    client.readMessage();
+                    checkFreeSpace(client.getSpace());
+                    client.sendMessage("ls");
+                    listFilesOnServer = client.readMessage();
+                    updateListViewer(list, listFilesOnServer, cloudFilesList);
+
+
                 }
             }
-        } catch (RuntimeException ex) {
-            System.out.println("Try again");
+
+        } catch (RuntimeException e) {
+            e.printStackTrace();
         }
+
     }
 
     // Вставка файла
@@ -277,6 +296,8 @@ public class CloudController implements Initializable {
         client.sendMessage("ls");
         listFilesOnServer = client.readMessage();
         updateListViewer(list, listFilesOnServer, cloudFilesList);
+        checkFreeSpace(client.getSpace());
+
     }
 
     // For fun
@@ -307,6 +328,37 @@ public class CloudController implements Initializable {
         Platform.exit();
     }
 
+    public void checkFreeSpace(Integer space) {
+        System.out.println("Check space");
+        client.sendMessage("checkSpace");
+        double size = Long.parseLong(client.readMessage());
+        String tmp = "";
+        if (size > 1023) {
+            size = size / 1024;
+            if (size > 1023) {
+                size /= 1024;
+                if (size > 1023) {
+                    size /= 1024;
+                    if (size > 1023) {
+                        size /= 1024;
+                        tmp = tmp.concat(String.format("%.2f", (size))).concat(" ").concat("TiB");
+                    } else {
+                        tmp = tmp.concat(String.format("%.2f", (size))).concat(" ").concat("GiB");
+                    }
+                } else {
+                    tmp = tmp.concat(String.format("%.2f", (size))).concat(" ").concat("MiB");
+                }
+            } else {
+                tmp = tmp.concat(String.format("%.2f", (size))).concat(" ").concat("KiB");
+            }
+        } else {
+            tmp = tmp.concat(String.format("%.2f", (size))).concat(" ").concat("B");
+        }
+        tmp = tmp.concat(" / ").concat(space.toString()).concat(" GiB");
+        System.out.println(tmp);
+        freeSpace.setText(tmp);
+    }
+
     // Инит на старте программы
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -315,6 +367,7 @@ public class CloudController implements Initializable {
         updateListViewer(list, listFilesOnServer, cloudFilesList);
         updateListViewer(list, getPcFilesList(pcPath), pcFilesList);
         addressPC.setText(pcPath);
+        checkFreeSpace(client.getSpace());
     }
 
     @FXML
@@ -334,5 +387,8 @@ public class CloudController implements Initializable {
 
     @FXML
     private TextField addressLine;
+
+    @FXML
+    private TextField freeSpace;
 
 }

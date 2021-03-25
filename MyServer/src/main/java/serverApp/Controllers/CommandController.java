@@ -20,6 +20,8 @@ public class CommandController {
     private String search = "";
     private StringBuilder sb = new StringBuilder();
 
+    long size = 0;
+
     public CommandController(DbController dbController, String mainPath) {
         this.dbController = dbController;
         this.mainPath = mainPath;
@@ -61,9 +63,10 @@ public class CommandController {
             mainPath = mainPath.concat("/").concat(login);
             rootPath = mainPath;
             previousPath = mainPath;
-            return "authsuccess";
+            Integer space = dbController.getSpace(login);
+            return "authsuccess ".concat(space.toString());
         } else {
-            return "autherror";
+            return "autherror 0";
         }
     }
 
@@ -178,7 +181,7 @@ public class CommandController {
                         sb.append(file.getFileName().toString().replace(" ", "??")
                                 .concat("::")
                                 .concat(file.getParent().toString().replace(" ", "??")
-                                .concat(":: ")));
+                                        .concat(":: ")));
                         return FileVisitResult.CONTINUE;
                     }
                     return FileVisitResult.CONTINUE;
@@ -203,7 +206,7 @@ public class CommandController {
 
     public String upload(String[] strings) {
         upload = new File(mainPath + File.separator + strings[1].replace("??", " "));
-        if(upload.exists()) {
+        if (upload.exists()) {
             nameFile = "copy_".concat(strings[1]);
         } else {
             nameFile = strings[1];
@@ -211,7 +214,7 @@ public class CommandController {
         return "uploadSuccess";
     }
 
-    public byte[] getBytes(){
+    public byte[] getBytes() {
         byte[] bytes = new byte[512];
         try {
             bytes = Files.readAllBytes(download.toPath());
@@ -236,5 +239,22 @@ public class CommandController {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public String checkSpace() {
+        size = 0;
+        try {
+            Files.walkFileTree(Paths.get(rootPath), new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                    size += file.toFile().length();
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException e) {
+            System.out.println("walkFileTree Exception");
+        }
+
+        return String.valueOf(size);
     }
 }

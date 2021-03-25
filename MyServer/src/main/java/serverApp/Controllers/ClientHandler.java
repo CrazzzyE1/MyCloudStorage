@@ -41,6 +41,7 @@ public class ClientHandler extends SimpleChannelInboundHandler {
 
 //            String msg = sbbb.toString();
             String msg = new String(bytestmp, 0, bytestmp.length, StandardCharsets.UTF_8);
+            System.out.println(msg);
             String[] strings = msg
                     .replace("\r", "")
                     .replace("\n", "")
@@ -96,6 +97,9 @@ public class ClientHandler extends SimpleChannelInboundHandler {
                 case ("upload"):
                     msg = commandController.upload(strings);
                     break;
+                case ("checkSpace"):
+                    msg = commandController.checkSpace();
+                    break;
                 default:
                     System.out.println("Unknown command");
                     break;
@@ -131,11 +135,15 @@ public class ClientHandler extends SimpleChannelInboundHandler {
             count += buffer.capacity();
             commandController.uploadFile(bytes);
             System.out.println("count: " + count + " uploadSize " + uploadFileSize);
+//// SuperFix
             if(uploadFileSize != count) return;
             uploadFlag = false;
             uploadFileSize = 0L;
             count = 0L;
             buffer.clear();
+            System.out.println("Im Here");
+            msg2 = Unpooled.copiedBuffer("Uploadcomplete".getBytes(StandardCharsets.UTF_8));
+            ctx.writeAndFlush(msg2);
             return;
         }
         buffer.clear();

@@ -41,8 +41,12 @@ public class AuthenticationController {
                 .concat(" ").concat(password.getText().trim().replace(" ", "??"));
         client.sendMessage(msg);
         msg = client.readMessage();
+        System.out.println(msg);
         // Если сервер ответил  Успешно, перходим в Основное окно приложения
-        if (msg.equals("authsuccess")) {
+        String space = msg.split(" ")[1];
+        client.setSpace(Integer.parseInt(space));
+
+        if (msg.split(" ")[0].equals("authsuccess")) {
             changeWindow("cloud");
         } else {
             login.clear();
