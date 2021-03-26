@@ -6,13 +6,19 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
+import javafx.stage.Stage;
 
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,7 +66,8 @@ public class CloudController implements Initializable {
     public void remove(ActionEvent actionEvent) {
         try {
             if (!cloudFilesList.getSelectionModel().getSelectedItem().isEmpty()
-                    && !cloudFilesList.getSelectionModel().getSelectedItem().equals("<- Back")) {
+                    && !cloudFilesList.getSelectionModel().getSelectedItem().equals("<- Back")
+                    && !cloudFilesList.getSelectionModel().getSelectedItem().equals("!Recycle_Bin")) {
                 String name = cloudFilesList.getSelectionModel().getSelectedItem();
                 client.sendMessage("rm " + name.replace(" ", "??"));
                 if (client.readMessage().equals("rmSuccess")) {
@@ -210,6 +217,7 @@ public class CloudController implements Initializable {
 
     //Копирование файла
     public void copyFile(ActionEvent actionEvent) {
+        if(client.getFreeSpace() < 0) return;
         try {
             if (!cloudFilesList.getSelectionModel().getSelectedItem().isEmpty()
                     && !cloudFilesList.getSelectionModel().getSelectedItem().equals("<- Back")) {
@@ -259,6 +267,7 @@ public class CloudController implements Initializable {
     }
 
     public void upload(ActionEvent actionEvent) throws RuntimeException {
+        if(client.getFreeSpace() < 0) return;
         try {
             if (!pcFilesList.getSelectionModel().getSelectedItem().isEmpty()
                     && !pcFilesList.getSelectionModel().getSelectedItem().equals("<- Back")
@@ -331,7 +340,8 @@ public class CloudController implements Initializable {
     public void checkFreeSpace(Integer space) {
         System.out.println("Check space");
         client.sendMessage("checkSpace");
-        double size = Long.parseLong(client.readMessage());
+        double size = Double.parseDouble(client.readMessage());
+        client.setFreeSpace((int) size);
         String tmp = "";
         if (size > 1023) {
             size = size / 1024;
@@ -357,6 +367,55 @@ public class CloudController implements Initializable {
         tmp = tmp.concat(" / ").concat(space.toString()).concat(" GiB");
         System.out.println(tmp);
         freeSpace.setText(tmp);
+    }
+
+    public void recycleClean(ActionEvent actionEvent) {
+        client.sendMessage("recycleClean");
+        client.readMessage();
+        client.sendMessage("ls");
+        listFilesOnServer = client.readMessage();
+        updateListViewer(list, listFilesOnServer, cloudFilesList);
+        checkFreeSpace(client.getSpace());
+    }
+
+
+    public void restore(ActionEvent actionEvent) {
+        client.sendMessage("restore");
+        client.readMessage();
+        client.sendMessage("ls");
+        listFilesOnServer = client.readMessage();
+        updateListViewer(list, listFilesOnServer, cloudFilesList);
+        checkFreeSpace(client.getSpace());
+    }
+
+    public void changePassword(ActionEvent actionEvent) {
+        System.out.println("Change pass");
+        changeWindow("changepassword");
+        return;
+    }
+
+    public void removeAccount(ActionEvent actionEvent) {
+        System.out.println("Remove account");
+        changeWindow("remove");
+        return;
+    }
+
+    // Смена окна приложения
+    public void changeWindow(String fxmlName) {
+        try {
+            String fxml = "/fxml/" + fxmlName + ".fxml";
+            Parent chat = FXMLLoader.load(getClass().getResource(fxml));
+            Stage stage = new Stage();
+            stage.setTitle(fxmlName);
+            stage.getIcons().add(new Image("/img/icon2.png"));
+            stage.setScene(new Scene(chat));
+            stage.setResizable(false);
+            stage.show();
+//            login.getScene().getWindow().hide();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     // Инит на старте программы
@@ -390,5 +449,6 @@ public class CloudController implements Initializable {
 
     @FXML
     private TextField freeSpace;
+
 
 }

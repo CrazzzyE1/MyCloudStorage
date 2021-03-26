@@ -8,7 +8,7 @@ public class DbController {
     private final String url;
     private final String user;
     private final String password;
-//    private Connection connection;
+    //    private Connection connection;
     private Statement statement;
     private ResultSet resultSet;
     private String sql = "";
@@ -77,13 +77,13 @@ public class DbController {
                 "WHERE login='" + login + "';";
         ResultSet rs = sendQuery(sql);
         int space = 0;
-            try {
-                if (rs.next())
-                space = rs.getInt ("space");
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
-            }
-    return space;
+        try {
+            if (rs.next())
+                space = rs.getInt("space");
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+        return space;
     }
 
 
@@ -97,4 +97,17 @@ public class DbController {
         }
     }
 
+    public boolean changePass(String login, String oldPassword, String newPassword) {
+        if(!auth(login,oldPassword)) return false;
+        sql = "UPDATE clouddb.users SET password = '"
+                + newPassword + "' WHERE (login = '"
+                + login + "' AND password = '" + oldPassword + "');";
+        return sendExecute(sql);
+    }
+
+    public boolean removeAccount(String login, String pass) {
+        if(!auth(login, pass)) return false;
+        sql = "UPDATE clouddb.users SET login = '" + "removed_".concat(login) + "' WHERE (login = '" + login + "' AND password = '" + pass + "');";
+        return sendExecute(sql);
+    }
 }

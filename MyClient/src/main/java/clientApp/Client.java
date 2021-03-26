@@ -17,8 +17,8 @@ public class Client implements Closeable {
     private final int PORT = 1234;
     private Integer space;
     private Integer DEFAULT_SPACE = 15;
-
-
+    private long freeSpace;
+    private String login = "";
 
     public static Client getInstance() {
         if (instance == null) {
@@ -29,6 +29,7 @@ public class Client implements Closeable {
 
     private Client() {
         try {
+            this.freeSpace = 0;
             this.space = DEFAULT_SPACE;
             this.socket = new Socket("localhost", PORT);
             this.is = new DataInputStream(socket.getInputStream());
@@ -39,8 +40,28 @@ public class Client implements Closeable {
         }
     }
 
+
+    public void setLogin(String login) {
+        this.login = login;
+    }
+
+    public String getLogin() {
+        return login;
+    }
+
     public Integer getSpace() {
         return space;
+    }
+
+    public void setFreeSpace(Integer size) {
+        System.out.println(size);
+        System.out.println(space);
+        freeSpace = (space * 1000) - size/1000000;
+        System.out.println("Free Space: " + freeSpace);
+    }
+
+    public long getFreeSpace() {
+        return freeSpace;
     }
 
     public void setSpace(Integer space) {

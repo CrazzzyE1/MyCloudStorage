@@ -19,8 +19,7 @@ public class CommandController {
     private String nameFile = "";
     private String search = "";
     private StringBuilder sb = new StringBuilder();
-
-    long size = 0;
+    long sizeSpace = 0;
 
     public CommandController(DbController dbController, String mainPath) {
         this.dbController = dbController;
@@ -57,8 +56,12 @@ public class CommandController {
         String password = strings[2].trim().replace("??", " ");
         if (dbController.auth(login, password)) {
             File folder = new File("MyCloud/" + login);
+            File recycleBin = new File("MyCloud/" + login + "/!Recycle_Bin");
             if (!folder.exists()) {
                 folder.mkdir();
+            }
+            if (!recycleBin.exists()) {
+                recycleBin.mkdir();
             }
             mainPath = mainPath.concat("/").concat(login);
             rootPath = mainPath;
@@ -99,12 +102,24 @@ public class CommandController {
 
     public String rm(String[] strings) {
         File rm = new File(mainPath + File.separator + strings[1].replace("??", " "));
-        if (rm.exists()) {
+        if (rm.exists() && rm.isDirectory()) {
             rm.delete();
             return "rmSuccess";
-        } else {
-            return "unSuccess";
         }
+        if (rm.isFile()) {
+            try {
+                Files.copy(rm.toPath(), Paths.get(rootPath + File.separator
+                        + "!Recycle_Bin" + File.separator + rm.getName()), StandardCopyOption.REPLACE_EXISTING);
+                rm.delete();
+                return "rmSuccess";
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return "rmSuccess";
+        }
+
+        return "unSuccess";
+
     }
 
     public String cd(String[] strings) {
@@ -242,12 +257,12 @@ public class CommandController {
     }
 
     public String checkSpace() {
-        size = 0;
+        sizeSpace = 0;
         try {
             Files.walkFileTree(Paths.get(rootPath), new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                    size += file.toFile().length();
+                    sizeSpace += file.toFile().length();
                     return FileVisitResult.CONTINUE;
                 }
             });
@@ -255,6 +270,73 @@ public class CommandController {
             System.out.println("walkFileTree Exception");
         }
 
-        return String.valueOf(size);
+        return String.valueOf(sizeSpace);
+    }
+
+    public String recycleClean() {
+        try {
+            Files.walkFileTree(Paths.get(rootPath + File.separator + "!Recycle_Bin"), new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                    file.toFile().delete();
+
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException e) {
+            System.out.println("walkFileTree Exception");
+        }
+        return "recycleCleanSuccess";
+    }
+
+    public String restore() {
+        try {
+            Files.walkFileTree(Paths.get(rootPath + File.separator + "!Recycle_Bin"), new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                    try {
+                        Path path = file.toFile().toPath();
+                        Files.copy(path, Paths.get(rootPath + File.separator + file.toFile().getName()), StandardCopyOption.REPLACE_EXISTING);
+                        Files.delete(file.toFile().toPath());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException e) {
+            System.out.println("walkFileTree Exception");
+        }
+        return "recycleCleanSuccess";
+    }
+
+    public String changePassword(String[] strings) {
+        String login = strings[1];
+        String oldPass = strings[2];
+        String newPass = strings[3];
+        boolean res = dbController.changePass(login, oldPass, newPass);
+
+        if(res) {
+            return "success";
+        } else  {
+            return "updateError";
+        }
+    }
+
+    public String remove(String[] strings) {
+        String login = strings[1];
+        String oldPass = strings[2];
+
+        boolean res = dbController.removeAccount(login, oldPass);
+        if(res) {
+            File folder = new File(rootPath.replace("/", "\\"));
+            File folder2 = new File(rootPath.replace("/", "\\").concat("_remove"));
+            if(folder.exists()){
+                folder.renameTo(folder2);
+            }
+            return "success";
+        } else  {
+            return "updateError";
+        }
     }
 }
