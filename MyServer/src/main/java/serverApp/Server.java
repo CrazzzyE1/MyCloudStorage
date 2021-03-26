@@ -24,7 +24,7 @@ public class Server {
     private final String DB_HOST = "localhost";
     private final int DB_PORT = 3306;
     private final static String user = "root";
-    private final static String password = "Viking07";
+    private final static String password = "password";
 
     private final DbController dbController;
 
