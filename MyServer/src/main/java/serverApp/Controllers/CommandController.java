@@ -28,6 +28,7 @@ public class CommandController {
         this.rootPath = mainPath;
     }
 
+    // Получение предыдущего путя
     public String getPreviousPath(String path) {
         if (path.equals(rootPath)) return path;
         int index = -1;
@@ -40,6 +41,7 @@ public class CommandController {
         return path;
     }
 
+    // Список файлов на сервере
     public String ls() {
         File file = new File(mainPath);
         File[] files = file.listFiles();
@@ -50,6 +52,7 @@ public class CommandController {
         if (sb.length() < 1) sb.append("Empty");
         return sb.toString();
     }
+
 
     public String auth(String[] strings) {
         String login = strings[1].trim().replace("??", " ");
@@ -73,6 +76,7 @@ public class CommandController {
         }
     }
 
+    // Регистрация
     public String reg(String[] strings) {
         String login = strings[1].replace("??", " ");
         String password = strings[2].replace("??", " ");
@@ -90,6 +94,7 @@ public class CommandController {
         }
     }
 
+    // Создание директории
     public String mkdir(String[] strings) {
         File folder = new File(mainPath + File.separator + strings[1].replace("??", " "));
         if (!folder.exists()) {
@@ -100,6 +105,7 @@ public class CommandController {
         }
     }
 
+    // Удаление файла или директории
     public String rm(String[] strings) {
         File rm = new File(mainPath + File.separator + strings[1].replace("??", " "));
         if (rm.exists() && rm.isDirectory()) {
@@ -122,6 +128,7 @@ public class CommandController {
 
     }
 
+    // Смена директории
     public String cd(String[] strings) {
         if (strings[1].contains("::")) {
             mainPath = strings[1].split("::")[1]
@@ -151,6 +158,7 @@ public class CommandController {
         return mainPath;
     }
 
+    // Копирование и Вырезание файла на сервере
     public String copyOrCut(String[] strings) {
         File copy = new File(mainPath + File.separator + strings[1].replace("??", " "));
         if (copy.exists()) {
@@ -163,6 +171,7 @@ public class CommandController {
         }
     }
 
+    // Вставка файла
     public String paste() {
         if (!copyOrCutPath.isEmpty()) {
             Path pathFrom = Paths.get(copyOrCutPath);
@@ -179,6 +188,7 @@ public class CommandController {
         return "pasteSuccess";
     }
 
+    // Поиск файла на сервере в папке пользователя
     public String search(String[] strings) {
         sb.setLength(0);
         for (int i = 1; i < strings.length; i++) {
@@ -210,6 +220,7 @@ public class CommandController {
         return search;
     }
 
+    // Скачать
     public String download(String[] strings) {
         download = new File(mainPath + File.separator + strings[1].replace("??", " "));
         if (download.exists() && !download.isDirectory()) {
@@ -219,6 +230,8 @@ public class CommandController {
         }
     }
 
+
+    // Загрузка в облако
     public String upload(String[] strings) {
         upload = new File(mainPath + File.separator + strings[1].replace("??", " "));
         if (upload.exists()) {

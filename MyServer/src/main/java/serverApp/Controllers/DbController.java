@@ -4,11 +4,9 @@ import java.sql.*;
 
 public class DbController {
 
-    //    private final String url = "jdbc:mysql://localhost:3306/clouddb";
     private final String url;
     private final String user;
     private final String password;
-    //    private Connection connection;
     private Statement statement;
     private ResultSet resultSet;
     private String sql = "";
@@ -19,6 +17,7 @@ public class DbController {
         this.url = "jdbc:mysql://" + host + ":" + port + "/clouddb";
     }
 
+    // Авторизация
     public boolean auth(String login, String password) {
         sql = "SELECT login, password FROM clouddb.users " +
                 "WHERE login='" + login + "' AND password='" + password + "';";
@@ -31,6 +30,8 @@ public class DbController {
         return true;
     }
 
+
+    // Регистрация
     public boolean reg(String login, String password, String nick) {
         if (checkLogin(login)) return false;
         sql = "INSERT INTO clouddb.users (login, password, nickname, folderpath, space) " +
@@ -38,6 +39,7 @@ public class DbController {
         return sendExecute(sql);
     }
 
+    // Проверка на существование логина
     public boolean checkLogin(String login) {
         sql = "SELECT login FROM clouddb.users " +
                 "WHERE login='" + login + "';";
@@ -50,6 +52,7 @@ public class DbController {
         return true;
     }
 
+    // Запрос в БД
     private ResultSet sendQuery(String sql) {
         openConnection();
         try {
@@ -60,6 +63,7 @@ public class DbController {
         return resultSet;
     }
 
+    // Запрос в БД
     private boolean sendExecute(String sql) {
         openConnection();
         boolean flag = false;
@@ -72,6 +76,7 @@ public class DbController {
         return flag;
     }
 
+    // Получение доступного места на диске для аккаунта
     public int getSpace(String login) {
         sql = "SELECT space FROM clouddb.users " +
                 "WHERE login='" + login + "';";
@@ -86,7 +91,7 @@ public class DbController {
         return space;
     }
 
-
+    // Соединение с БД
     private void openConnection() {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -97,6 +102,7 @@ public class DbController {
         }
     }
 
+    // Смена пароля
     public boolean changePass(String login, String oldPassword, String newPassword) {
         if(!auth(login,oldPassword)) return false;
         sql = "UPDATE clouddb.users SET password = '"
@@ -105,6 +111,7 @@ public class DbController {
         return sendExecute(sql);
     }
 
+    // Удаление аккаунта
     public boolean removeAccount(String login, String pass) {
         if(!auth(login, pass)) return false;
         sql = "UPDATE clouddb.users SET login = '" + "removed_".concat(login) + "' WHERE (login = '" + login + "' AND password = '" + pass + "');";

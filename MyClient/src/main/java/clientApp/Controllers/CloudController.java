@@ -391,13 +391,11 @@ public class CloudController implements Initializable {
     public void changePassword(ActionEvent actionEvent) {
         System.out.println("Change pass");
         changeWindow("changepassword");
-        return;
     }
 
     public void removeAccount(ActionEvent actionEvent) {
         System.out.println("Remove account");
         changeWindow("remove");
-        return;
     }
 
     // Смена окна приложения

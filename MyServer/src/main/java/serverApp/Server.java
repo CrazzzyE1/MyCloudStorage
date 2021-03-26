@@ -7,8 +7,6 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
 import serverApp.Controllers.ClientHandler;
 import serverApp.Controllers.DbController;
 
@@ -24,7 +22,7 @@ public class Server {
     private final String DB_HOST = "localhost";
     private final int DB_PORT = 3306;
     private final static String user = "root";
-    private final static String password = "password";
+    private final static String password = "Viking07";
 
     private final DbController dbController;
 
