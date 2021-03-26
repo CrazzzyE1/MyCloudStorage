@@ -106,9 +106,9 @@ public class CommandController {
             rm.delete();
             return "rmSuccess";
         }
-        if(rm.isFile()) {
+        if (rm.isFile()) {
             try {
-                Files.copy(rm.toPath(), Paths.get(rootPath  + File.separator
+                Files.copy(rm.toPath(), Paths.get(rootPath + File.separator
                         + "!Recycle_Bin" + File.separator + rm.getName()), StandardCopyOption.REPLACE_EXISTING);
                 rm.delete();
                 return "rmSuccess";
@@ -296,7 +296,7 @@ public class CommandController {
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                     try {
                         Path path = file.toFile().toPath();
-                        Files.copy(path, Paths.get(rootPath +File.separator + file.toFile().getName()), StandardCopyOption.REPLACE_EXISTING);
+                        Files.copy(path, Paths.get(rootPath + File.separator + file.toFile().getName()), StandardCopyOption.REPLACE_EXISTING);
                         Files.delete(file.toFile().toPath());
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -308,5 +308,35 @@ public class CommandController {
             System.out.println("walkFileTree Exception");
         }
         return "recycleCleanSuccess";
+    }
+
+    public String changePassword(String[] strings) {
+        String login = strings[1];
+        String oldPass = strings[2];
+        String newPass = strings[3];
+        boolean res = dbController.changePass(login, oldPass, newPass);
+
+        if(res) {
+            return "success";
+        } else  {
+            return "updateError";
+        }
+    }
+
+    public String remove(String[] strings) {
+        String login = strings[1];
+        String oldPass = strings[2];
+
+        boolean res = dbController.removeAccount(login, oldPass);
+        if(res) {
+            File folder = new File(rootPath.replace("/", "\\"));
+            File folder2 = new File(rootPath.replace("/", "\\").concat("_remove"));
+            if(folder.exists()){
+                folder.renameTo(folder2);
+            }
+            return "success";
+        } else  {
+            return "updateError";
+        }
     }
 }
